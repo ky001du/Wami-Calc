@@ -108,7 +108,7 @@ td,th{overflow-wrap:anywhere;}
 </head>
 <body>
 <div class="wrap">
-  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v70 · 2026-10-15</span></h1>
+  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v73 · 2026-10-15</span></h1>
   <p class="sub">Formulas pulled directly from the game's compiled code + your save. Covers what's been fully verified so far — more tabs get added as more systems get decoded.</p>
 
   <div class="fontctl">
@@ -523,8 +523,9 @@ td,th{overflow-wrap:anywhere;}
       <div class="gap-note"><b>Minion Atk & Def</b> (row 7) is the one that matters for the Total Attack/Defense calculator on the Stage Roadmap tab — it's auto-synced from here (<code>TRS.TSMinionStats</code> in the master formula, +2.5% Attack and Defense per level, flat, up to 10 levels = +25%). Every other row here is a standalone bonus to its own system, not part of that formula.</div>
     </div>
     <div class="card">
-      <h2>Page 3 <span style="font-weight:400;color:var(--sub);">(advanced Comos-tiering prestige items — named only, not modeled)</span></h2>
-      <p class="note">Confirmed to exist (9 items, each with its own Bonus()/Costs()/BonusBase() curve class) but each uses a distinct, non-trivial formula (e.g. Comos Infused Potions: "+X% as Perma Bonus for every Hour used, retroactive, capped") that wasn't traced this session — genuine gap, not guessed. Reference the in-game tooltips for exact numbers until this gets a full pass.</p>
+      <h2>Page 3 <span style="font-weight:400;color:var(--sub);">(nine Pure Comos prestige items)</span></h2>
+      <p class="note">Confirmed from <code>TributeShop.Start</code>, <code>SynV2ShopItems.Costs/get_Bonus</code> and each item's <code>ClickTS2INF*</code> description. Cost of the next level (in Pure Comos) is <code>base × (L+1)<sup>log<sub>15</sub>(L+1) × (1+(L+1)/100)</sup></code> for level L. Effect is <code>1 + perLevel × L</code> for most items, <code>perLevel × L</code> for Comos Infused Potions, and <code>perLevel × L × max(Darkness shop item 4 bonus, 1)</code> for Arena and Necromantic Convergence. Pure Comos income itself (the Comos tiering minigame) is not modeled.</p>
+      <div class="row"><label>Pure Comos on hand / Darkness shop item 4 bonus (multiplies Arena and Necromantic Convergence; 1 if none)</label><input type="text" id="tsP3Comos" value="0" style="width:48%;"> / <input type="number" id="tsP3Dark" value="1" min="0" step="any" style="width:48%;"></div>
       <table id="tsPage3Table"></table>
     </div>
   </div>
@@ -535,7 +536,7 @@ td,th{overflow-wrap:anywhere;}
       <h2>Arena Shop</h2>
       <p class="note">Confirmed from the <code>ArenaShop</code> class: a 5-item <b>Soul</b> shop and a <b>Token</b> shop (Arena Tokens, earned by fighting in the Arena) with 28 regular purchase items, 12 "skill level" items whose cost climbs ×1.03 per level, and a one-time Fishing Bonuses item. Cost formulas, max levels and effects below are read straight from each item's <code>Click*</code>/<code>ClickPurchase</code> code. The item that matters for the Attack/Defense calculator is <b>Minion Atk &amp; Def</b> (+2.5% each, max 10, <code>ATMinionStats</code>) — it auto-syncs into the Total Attack/Defense card on the Stage Roadmap tab. Fighting itself (how many Tokens per run, monster pits, champion pit) isn't modeled.</p>
       <div class="row"><label>Arena Tokens on hand</label><input type="number" id="arTokens" value="0" min="0" step="any"></div>
-      <div class="row"><label>Tribute Shop "Arena Convergence" bonus <span style="color:var(--sub);">(divides the 12 skill-level costs by max(1, 1+bonus); read it off Tribute page 3 — not modeled there, so type it in)</span></label><input type="number" id="arConv" value="0" min="0" step="any"></div>
+      <div class="row"><label>Tribute Shop "Arena Convergence" bonus <span style="color:var(--sub);">(divides the 12 skill-level costs by max(1, 1+bonus); auto-filled from Tribute page 3 item 6, or type it in)</span></label><input type="number" id="arConv" value="0" min="0" step="any"></div>
       <div class="result" style="margin-top:12px;">
         <div class="label">Tokens still needed to max every Token-shop item &nbsp;/&nbsp; to afford with your balance</div>
         <div class="big" id="arSummary">—</div>
@@ -2878,15 +2879,45 @@ function tsSyncMaster(){
 }
 tsRenderTable();
 
-const tsPage3Items = [
-  'Comos Infused Potions','Grilled Comos','Romos Divergence','Atomos Divergence','Pomos Divergence',
-  'Arena Convergence','Mastery Convergence','Necromantic Convergence','Gravity Convergence'
+var tsP3=[
+  ['Comos Infused Potions','Add X% of potion hours used as a permanent bonus (retroactive), capped at 75%',1500,1e8,1.8e-5,'raw'],
+  ['Grilled Comos','Increase Special Cooking duration',1000,1e7,0.05,'mult'],
+  ['Romos Divergence','Increase Pure Romos',1000,2.5e8,0.02,'mult'],
+  ['Atomos Divergence','Increase Pure Atomos',1000,2.5e8,0.02,'mult'],
+  ['Pomos Divergence','Increase Pure Pomos',1000,2.5e8,0.02,'mult'],
+  ['Arena Convergence','Decrease Arena Infinite Shop price (feeds the Arena Shop tab)',500,5e9,0.015,'dark'],
+  ['Mastery Convergence','Increase Mastery Class Exp',500,1e10,0.035,'mult'],
+  ['Necromantic Convergence','Increase Necromancer Perma effect',500,4e8,0.002,'dark'],
+  ['Gravity Convergence','Increase your Anti-Gravity bonus',100,1e11,0.02,'mult']
 ];
+var tsP3Lv=[0,0,0,0,0,0,0,0,0];
+var tsPage3Items=tsP3.map(x=>x[0]);
+function tsP3Cost(i,L){const b=tsP3[i][3]; const n=L+1; return b*Math.pow(n, (Math.log(n)/Math.log(15))*(1+n/100));}
+function tsP3Bonus(i,L){
+  const k=tsP3[i][5], per=tsP3[i][4], dark=Math.max(parseFloat((document.getElementById('tsP3Dark')||{}).value)||1,1);
+  if(k==='raw') return per*L;
+  if(k==='dark') return per*L*dark;
+  return 1+per*L;
+}
+function tsP3Calc(){
+  tsP3.forEach((it,i)=>{
+    const L=tsP3Lv[i]||0, max=it[2];
+    const set=(id,t)=>{const e=document.getElementById(id); if(e) e.textContent=t;};
+    const bn=tsP3Bonus(i,L);
+    const eff=it[5]==='raw'?('+'+(Math.min(bn,0.75)*100).toFixed(4)+'%'+(bn>0.75?' (capped)':'')):it[5]==='dark'?('+'+(bn*100).toFixed(2)+'%'):('x'+bn.toFixed(3)+' (+'+((bn-1)*100).toFixed(2)+'%)');
+    set('tsP3Eff'+i,eff);
+    set('tsP3Cost'+i,L>=max?'MAX':fmtBig(Math.round(tsP3Cost(i,L))));
+  });
+  const ac=document.getElementById('arConv'); if(ac){ ac.value=tsP3Bonus(5,tsP3Lv[5]||0); try{ arItems.forEach(it=>arUpdateRow(it[0])); arSummary(); }catch(e){ /* Arena tab not initialised yet at page load */ } }
+}
 function tsRenderPage3(){
-  const rows = tsPage3Items.map(name=> `<tr><td>${name}</td></tr>`).join('');
-  document.getElementById('tsPage3Table').innerHTML = '<tr><th>Name</th></tr>' + rows;
+  const rows=tsP3.map((it,i)=>`<tr><td>${it[0]}</td><td style="font-size:.85em;">${it[1]}</td><td>${(it[4]*100).toFixed(it[4]<0.001?4:2)}% / level</td><td>${it[2]}</td><td><input type="number" min="0" max="${it[2]}" step="1" value="${tsP3Lv[i]||0}" data-i="${i}" class="tsP3In" style="width:80px;"></td><td id="tsP3Eff${i}"></td><td id="tsP3Cost${i}"></td></tr>`).join('');
+  document.getElementById('tsPage3Table').innerHTML='<tr><th>Item</th><th>Effect</th><th>Per level</th><th>Max</th><th>Level</th><th>Current effect</th><th>Next level cost (Pure Comos)</th></tr>'+rows;
+  document.querySelectorAll('.tsP3In').forEach(e=>e.addEventListener('input',()=>{tsP3Lv[+e.dataset.i]=Math.max(0,Math.floor(parseFloat(e.value)||0)); tsP3Calc();}));
+  tsP3Calc();
 }
 tsRenderPage3();
+(function(){const e=document.getElementById('tsP3Dark'); if(e) e.addEventListener('input',tsP3Calc);})();
 
 // ---- Arena Shop (confirmed from ArenaShop.Click* + ClickPurchase) ----
 // kind: 'lin' cost = A*(lvl+1); 'exp' cost = A*B^lvl; 'adv' triangular; 'skill' ((A+lvl*A)*1.03^lvl)/costReduction
@@ -3014,16 +3045,16 @@ function arSoulRender(){
 arSoulRender();
 
 // ---- Generator V2 ----
-const gv2Cats=[['Demons',380,1e10,0],['Conjuring',400,1e15,1],['Dungeon',415,1e20,3],['Generator',430,1e25,2],['Slime',450,1e30,4],['Alchemy',475,1e35,5]];
-let gv2Perm=[0,0,0,0,0,0];
+var gv2Cats=[['Demons',380,1e10,0],['Conjuring',400,1e15,1],['Dungeon',415,1e20,3],['Generator',430,1e25,2],['Slime',450,1e30,4],['Alchemy',475,1e35,5]];
+var gv2Perm=[0,0,0,0,0,0];
 function gv2Num(id){const v=parseFloat(document.getElementById(id).value);return isFinite(v)?v:0;}
 function gv2Mult(){
   return (1+gv2Num('gv2Mach'))*(1+gv2Num('gv2Trib')*0.04)*((1+gv2Num('gv2T15'))+gv2Num('gv2T35'))*(1+gv2Num('gv2Pull')/100);
 }
 function gv2Calc(){
-  const el=document.getElementById('gv2Table'); if(!el) return;
+  const el=document.getElementById('gv2Table'); if(!el || !gv2Cats) return;
   const stage=gv2Num('gv2Stage'), E=gv2Num('gv2Essence'), M=gv2Mult(), cur=gv2Num('gv2Cur');
-  const _g5=document.getElementById('alG5'); if(_g5 && typeof gv2Perm!=='undefined'){ _g5.value=gv2Perm[5]||0; if(typeof alCalc==='function') alCalc(); }
+  const _g5=document.getElementById('alG5'); if(_g5 && typeof gv2Perm!=='undefined'){ _g5.value=(gv2Perm&&gv2Perm[5])||0; if(typeof alCalc==='function') alCalc(); }
   document.getElementById('gv2Mult').textContent='×'+M.toFixed(4);
   let h='<tr><th>Category</th><th>Unlock</th><th>Log base</th><th>Current bonus</th><th>Gain if released now</th><th>Essence consumed</th><th>Essence for +1 / +2 / +5 %</th></tr>';
   gv2Cats.forEach(c=>{
@@ -3033,7 +3064,7 @@ function gv2Calc(){
     const gain=Math.floor(lg*M);
     const used=Math.floor(lg)*base;
     const need=g=>fmtBig(Math.pow(base,g/M)-1);
-    h+=`<tr style="${ok?'':'opacity:.5'}"><td>${name}</td><td>Stage ${unl}${ok?'':' (locked)'}</td><td>${fmtBig(base)}</td><td>${fmtBig(gv2Perm[idx]||0)}%</td><td>${ok&&cur>0?'+'+fmtBig(gain)+'%':(ok?'no charge':'—')}</td><td>${ok?fmtBig(used):'—'}</td><td>${need(1)} / ${need(2)} / ${need(5)}</td></tr>`;
+    h+=`<tr style="${ok?'':'opacity:.5'}"><td>${name}</td><td>Stage ${unl}${ok?'':' (locked)'}</td><td>${fmtBig(base)}</td><td>${fmtBig((gv2Perm||[])[idx]||0)}%</td><td>${ok&&cur>0?'+'+fmtBig(gain)+'%':(ok?'no charge':'—')}</td><td>${ok?fmtBig(used):'—'}</td><td>${need(1)} / ${need(2)} / ${need(5)}</td></tr>`;
   });
   el.innerHTML=h;
 }
@@ -3083,11 +3114,11 @@ function wbSyncFromTad(){
 }
 
 // ---- Alchemy Lab ----
-const alNames=["Drop Chance","Mana Refill","Mana Power","Gold Drop","Exp Gain","Meditation","Pet Food Income","Pet Point Income","Spirit Refill (Demons)","Spell Bonus","Perm Demons","Essence Gen.","Dungeon Damage","Monster Rarity","Gathering Exp","Gathering Speed","Gathering Logs","Gathering Ore","Gathering Gems","Gathering Res.","Hell Mana Refill","Mana Cap Rate","Battlefield Dmg.","Respawn Rate","Speed Bonus","Hell Spirit (Baby)","Slime Exp","Training Exp","Faster Mixing","Slime Attack","Skeleton Smn","Goblin Smn","Succubi Smn","Cyclops Smn","Angel Smn","Perks Bonus","Demon Essence","Slime Juice %","Slime Bonus %","Unknown Bonus"];
-const alAdjust=[0.6,0.3,1.0,1.5,0.3,1.0,0.4,0.7,0.2,2.0,1.0,0.7,1.0,0.4,0.1,0.05,0.1,0.05,0.025,0.07,0.2,0.1,0.5,1.0,1.0,0.005,0.1,0.06,0.1,0.2,0.08,0.08,0.08,0.08,0.08,0.06,0.2,0.1,0.06,1.0];
-const alAdditive=new Set([8,10,16,17,18]);
-const alCaps={0:26,13:11};
-let alMixes=new Array(40).fill(0);
+var alNames=["Drop Chance","Mana Refill","Mana Power","Gold Drop","Exp Gain","Meditation","Pet Food Income","Pet Point Income","Spirit Refill (Demons)","Spell Bonus","Perm Demons","Essence Gen.","Dungeon Damage","Monster Rarity","Gathering Exp","Gathering Speed","Gathering Logs","Gathering Ore","Gathering Gems","Gathering Res.","Hell Mana Refill","Mana Cap Rate","Battlefield Dmg.","Respawn Rate","Speed Bonus","Hell Spirit (Baby)","Slime Exp","Training Exp","Faster Mixing","Slime Attack","Skeleton Smn","Goblin Smn","Succubi Smn","Cyclops Smn","Angel Smn","Perks Bonus","Demon Essence","Slime Juice %","Slime Bonus %","Unknown Bonus"];
+var alAdjust=[0.6,0.3,1.0,1.5,0.3,1.0,0.4,0.7,0.2,2.0,1.0,0.7,1.0,0.4,0.1,0.05,0.1,0.05,0.025,0.07,0.2,0.1,0.5,1.0,1.0,0.005,0.1,0.06,0.1,0.2,0.08,0.08,0.08,0.08,0.08,0.06,0.2,0.1,0.06,1.0];
+var alAdditive=new Set([8,10,16,17,18]);
+var alCaps={0:26,13:11};
+var alMixes=new Array(40).fill(0);
 function alNum(id){const v=parseFloat(document.getElementById(id).value);return isFinite(v)?v:0;}
 function alCoef(i){
   const B=(1+alNum('alSR6b'))*(1+alNum('alAB'))*(1+alNum('alBH')/20)*(1+alNum('alSR6p'));
@@ -3120,6 +3151,7 @@ function alRender(){
   alCalc();
 }
 function alCalc(){
+  if(!alNames || !alMixes) return;
   for(let i=0;i<alNames.length;i++){
     const m=alMixes[i]||0, set=(id,t)=>{const e=document.getElementById(id); if(e) e.textContent=t;};
     set('alV'+i,alFmt(i,alValue(i,m)));
@@ -3140,7 +3172,7 @@ function mnExpToLevel(n){
   return 50000000000000+(n-520)*50000000000000;
 }
 function mnNum(id){const v=parseFloat(document.getElementById(id).value);return isFinite(v)?v:0;}
-let mnSaved={};
+var mnSaved={};
 function mnCalc(){
   const tb=document.getElementById('mnTable'); if(!tb) return;
   const L=Math.max(1,Math.floor(mnNum('mnLvl'))), cur=mnNum('mnExp'), tg=Math.floor(mnNum('mnTgt'));
@@ -3963,6 +3995,13 @@ function processSaveData(d, statusEl){
     if(d.page3Perks && d.page3Perks._items){ const it=d.page3Perks._items; const e8=document.getElementById('mnP38'), e9=document.getElementById('mnP39'); if(e8&&it[8]!==undefined) e8.value=bdVal(it[8]); if(e9&&it[9]!==undefined) e9.value=bdVal(it[9]); }
     mnSaved={loaded:1,cc:bdVal(d.PetCriticalChance),cd:bdVal(d.PetCriticalDamage),dc:bdVal(d.PetDoubleChance),ev:bdVal(d.PetEvadeChance),sp:bdVal(d.PetAttackSpeed),dr:bdVal(d.PetDropChance)};
     mnRefresh(); filled.push('Minion');
+  }
+  { let ifF=0; ifChallenges.forEach(([nm,pr,rw,id],i)=>{ const k='IFChallenge'+(i+1)+'Completion'; if(d[k]!==undefined){ ifCounts[id]=Math.max(0,Math.floor(bdVal(d[k]))); ifF++; } });
+    if(ifF){ ifRenderTable(); filled.push('Infinite Challenges ('+ifF+')'); } }
+  if (d.synV2Page3Levels && d.synV2Page3Levels._items){
+    tsP3Lv = d.synV2Page3Levels._items.slice(0,9).map(x=>Math.max(0,Math.floor(bdVal(x))));
+    if(d.pureComosCurrent!==undefined){const e=document.getElementById('tsP3Comos'); if(e) e.value=bdVal(d.pureComosCurrent);}
+    tsRenderPage3(); filled.push('Tribute page 3');
   }
   if (arFilled){ arRenderTable(); arSoulRender(); filled.push(`Arena Shop (${arFilled}/${arItems.length} items)`); }
   if (typeof tadRecalc === 'function') tadRecalc();
