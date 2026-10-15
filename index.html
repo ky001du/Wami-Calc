@@ -108,7 +108,7 @@ td,th{overflow-wrap:anywhere;}
 </head>
 <body>
 <div class="wrap">
-  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v57 · 2026-10-14</span></h1>
+  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v70 · 2026-10-15</span></h1>
   <p class="sub">Formulas pulled directly from the game's compiled code + your save. Covers what's been fully verified so far — more tabs get added as more systems get decoded.</p>
 
   <div class="fontctl">
@@ -145,6 +145,12 @@ td,th{overflow-wrap:anywhere;}
     <option value="crafting">Crafting</option>
     <option value="minionlab">Minion Lab</option>
     <option value="challenges">Challenges</option>
+    <option value="tribute">Tribute Shop</option>
+    <option value="arenashop">Arena Shop</option>
+    <option value="genv2">Generator V2</option>
+    <option value="worldboss">World Boss</option>
+    <option value="alchlab">Alchemy Lab</option>
+    <option value="minion">Minion</option>
     <option value="stageroadmap">Stage Roadmap</option>
   </select>
 
@@ -399,12 +405,12 @@ td,th{overflow-wrap:anywhere;}
     <div class="card">
       <h2>Baby Demons unlocked</h2>
       <p class="note">Confirmed EXACT from <code>Reproduction.ReproductionTick</code>: Baby Demons unlock at 1 per 1000 lifetime Demons (via Conjuring, all-time total), reduced by 5 confirmed sources (from the wiki's "Demon reduction rate sources" list, cross-checked field-for-field against the DLL): <code>maxBabyDemons = floor(lifetimeDemons / (1000 − reduction))</code>.</p>
-      <div class="row"><label>Lifetime Demons (all-time, via Conjuring)</label><input type="number" id="bdLifetimeDemons" value="1000000" step="any" min="0"></div>
+      <div class="row"><label>Total Demons <span style="color:var(--sub);">(the game divides <code>TotalSlaves</code> — your current total demon count — by the requirement; auto-filled from a save taken outside a challenge)</span></label><input type="number" id="bdLifetimeDemons" value="1000000" step="any" min="0"></div>
       <div class="row"><label>Newbie Baby Demons Requirement Trophy owned? (Unique, −100)</label><input type="checkbox" id="bdNewbieTrophy"></div>
       <div class="row"><label>Pro Baby Demons Requirement Trophy owned? (Chaos, −200)</label><input type="checkbox" id="bdProTrophy"></div>
-      <div class="row"><label>Synergy V2 page 2 "Baby Demons Rate" bonus (−10/level, max −250)</label><input type="number" id="bdSynRate" value="0" min="0" max="250" step="10"></div>
-      <div class="row"><label>Plaza Perk page 4 "Baby Demons Rate" bonus (−2/level, max −100)</label><input type="number" id="bdPlazaRate" value="0" min="0" max="100" step="2"></div>
-      <div class="row"><label>Baby Demon Singularity bonus (−2/level, max −300)</label><input type="number" id="bdSingularity" value="0" min="0" max="300" step="2"></div>
+      <div class="row"><label>Tribute Shop "Baby Demon Rate" <span style="color:var(--sub);">(−10 demons per level, max −250 — auto-synced from the Tribute Shop tab; game term <code>TSBabyDemonRate × 10</code>)</span></label><input type="number" id="bdSynRate" value="0" min="0" max="250" step="10" readonly style="background:var(--panel2,rgba(255,255,255,0.03));"></div>
+      <div class="row"><label>Plaza Perk "Baby Demons Rate" <span style="color:var(--sub);">(−2 per level, max −100; game term <code>PP.BabyDemonsRate × 2</code>)</span></label><input type="number" id="bdPlazaRate" value="0" min="0" max="100" step="2"></div>
+      <div class="row"><label>Baby Demon Singularity <span style="color:var(--sub);">(Darkness Shop infinite upgrade #1; −2 per level, max −300 per the wiki)</span></label><input type="number" id="bdSingularity" value="0" min="0" max="300" step="2"></div>
       <div class="result" style="margin-top:12px;">
         <div class="label">Demons needed per Baby Demon &nbsp;/&nbsp; Max Baby Demons unlocked at your lifetime Demons</div>
         <div class="big" id="bdUnlockedOut">—</div>
@@ -483,18 +489,135 @@ td,th{overflow-wrap:anywhere;}
     <div class="card">
       <h2>Challenges</h2>
       <p class="note">Confirmed from the <code>AcceptChallenge</code> class: 14 repeatable regular Challenges (First Step, Inferno/"Keep Going", Real Estate, and 11 more unnamed in the DLL's own field names — goal values below are from the DLL's exact per-completion formulas) plus 6 one-time "Infinite Challenges" unlocked much later. <b>Every regular Challenge completion — any of the 14, confirmed directly in <code>AcceptChallenge.Update</code> — adds a flat +2.0 to <code>ChallengeAdvBonus</code>, permanently, with no cap seen in the DLL.</b> This is the exact value used in the master Attack/Defense formula as <code>(1 + ChallengeAdvBonus/100)</code> — so every single Challenge completion across all 14 challenges is worth +2% Attack and +2% Defense, forever. This directly matches the stage roadmap's "Challenge completed for rewards" framing: these aren't one-off unlocks, they're a repeatable, uncapped combat-power grind.</p>
-      <div class="row"><label>Total regular-Challenge completions so far (sum across all 14)</label><input type="number" id="chCompletions" value="0" min="0" step="1"></div>
+      <div class="row"><label>Total regular-Challenge completions so far (sum across all 14, max 48)</label><input type="number" id="chCompletions" value="0" min="0" max="48" step="1"></div>
       <div class="result" style="margin-top:12px;">
         <div class="label">Current ChallengeAdvBonus → Attack/Defense multiplier</div>
         <div class="big" id="chBonusOut">—</div>
       </div>
       <table id="chTable"></table>
-      <div class="gap-note">Goal-scaling differs per challenge (confirmed per-challenge from the DLL): First Step grows +30 per completion (100, 130, 160…); Inferno/Keep Going grows ×30; Real Estate (Challenge 12) and most of the unnamed later ones hold a flat repeat goal unless noted. Reward text (Mana/Exp/Soul payouts) scales with completions too but isn't part of the Attack/Defense formula, so it's left out here.</div>
+      <div class="gap-note">Per-completion goals, unlocks, rewards and recommended stats are transcribed from the wiki's individual challenge pages (uploaded 2026-10-15); the "Engine prerequisite" column is the game code's own check. Completions per challenge: First Step 5, Inferno 3, Demons Master 2, No Conjuring 3, Blade Storm 5, Time Loop 3, Farmer Life 3, In Spiritus 2, Air Elemental 3, OPM 4, No Reincarnation 4, Real Estate 6, Learn To Walk Again 3, Hardest Challenge Ever 2 = 48 total (max ChallengeAdvBonus 96). Confirmed against a real save: completion counters match these maxima (First Step 5/5, Time Loop 3/3 ...) and your in-game "Farmer Life (1/3)" screen. Mana Cap/Exp rewards that the wiki marks "depends on…" are shown as written. No Reincarnation 2-4's unlock line was missing on the wiki page and is filled in as the obvious chain.</div>
+    </div>
+    <div class="card">
+      <h2>Challenge Readiness <span style="font-weight:400;color:var(--sub);">(which next completion is easiest for you right now)</span></h2>
+      <p class="note">For each challenge's <b>next</b> completion this checks the wiki's recommended stats that can be measured from your save or the boxes below: unlock gates (stage / earlier completions), Exp Shop base Mana Refill &amp; Mana Power, mana cap, reincarnation bonus, "reach stage N" and "complete challenge X" recommendations. Everything else the wiki recommends (gear, slimes, trophies, dungeon floors…) is listed as "check yourself". It's a screen, not a guarantee: the wiki's targets are written for typical progression, and the "true ideal numbers" comparison is planned later.</p>
+      <div class="row"><label>Highest stage reached</label><input type="number" id="chpStage" value="0" min="0" step="1"></div>
+      <div class="row"><label>Mana cap <span style="color:var(--sub);">(<code>ManaLimitBD</code>, or the pre-challenge snapshot if the save was taken inside one)</span></label><input type="number" id="chpManaCap" value="0" min="0" step="any"></div>
+      <div class="row"><label>Exp Shop base Mana Refill</label><input type="number" id="chpRefill" value="0" min="0" step="any"></div>
+      <div class="row"><label>Exp Shop base Mana Power</label><input type="number" id="chpPower" value="0" min="0" step="any"></div>
+      <div class="row"><label>Reincarnation bonus % <span style="color:var(--sub);">(outside a challenge)</span></label><input type="number" id="chpReinc" value="0" min="0" step="any"></div>
+      <table id="chReadyTable"></table>
     </div>
     <div class="card">
       <h2>Infinite Challenges <span style="font-weight:400;color:var(--sub);">(one-time-style, unlocked late — each gives its OWN named bonus, not ChallengeAdvBonus)</span></h2>
-      <p class="note">Confirmed from the DLL: these 6 do NOT add to <code>ChallengeAdvBonus</code> — each instead grants its own named +10%-per-completion bonus to a different stat entirely (confirmed by the exact completion-message text in the DLL). None of the 6 write into any field referenced by the master Attack/Defense formula traced so far, except Infinite First Step, which explicitly reads "Your Offense & Defense increased by 10%" in its own completion text — that wording is confirmed, but which field it actually increments wasn't found in <code>MinionMain.Update</code>'s formula, so it isn't included in the calculator below; treat it as a bonus on top.</p>
+      <p class="note">These 6 do NOT add to <code>ChallengeAdvBonus</code> (confirmed from the DLL). Per the wiki pages, the reward compounds: <b>stat × 1.1^clears</b> (1 clear +10%, 10 clears +159%, 20 +573%, 30 +1,645%, 40 +4,426%), while <i>inside</i> the challenge the same stat is raised to <b>0.99^clears</b> (^.904 at 10, ^.818 at 20, ^.740 at 30, ^.669 at 40). Nothing is reset on entry, so the wiki recommends clearing them as soon as they unlock.</p>
       <table id="ifTable"></table>
+    </div>
+  </div>
+
+  <!-- TRIBUTE SHOP -->
+  <div class="panel" id="tribute">
+    <div class="card">
+      <h2>Tribute Shop</h2>
+      <p class="note">Confirmed from the <code>TributeShop</code> class's 21 main-shop items (its "page 1/2" items, all paid in <b>Pure Comos</b>) plus a separate 9-item "page 3" prestige layer. Pure Comos itself comes from a whole separate resource-tiering minigame (<code>TributeMain</code>: raw Comos → Refined Comos → Pure Comos, plus 3 parallel resources Romos/Atomos/Pomos with their own ladders) — that gathering/conversion system isn't modeled here, only the shop it pays for. Costs below are exact (<code>base × multiplier^level</code>, confirmed per item); enter your current level per item to see its live bonus and the Pure Comos cost of the next purchase.</p>
+      <table id="tsTable"></table>
+      <div class="gap-note"><b>Minion Atk & Def</b> (row 7) is the one that matters for the Total Attack/Defense calculator on the Stage Roadmap tab — it's auto-synced from here (<code>TRS.TSMinionStats</code> in the master formula, +2.5% Attack and Defense per level, flat, up to 10 levels = +25%). Every other row here is a standalone bonus to its own system, not part of that formula.</div>
+    </div>
+    <div class="card">
+      <h2>Page 3 <span style="font-weight:400;color:var(--sub);">(advanced Comos-tiering prestige items — named only, not modeled)</span></h2>
+      <p class="note">Confirmed to exist (9 items, each with its own Bonus()/Costs()/BonusBase() curve class) but each uses a distinct, non-trivial formula (e.g. Comos Infused Potions: "+X% as Perma Bonus for every Hour used, retroactive, capped") that wasn't traced this session — genuine gap, not guessed. Reference the in-game tooltips for exact numbers until this gets a full pass.</p>
+      <table id="tsPage3Table"></table>
+    </div>
+  </div>
+
+  <!-- ARENA SHOP -->
+  <div class="panel" id="arenashop">
+    <div class="card">
+      <h2>Arena Shop</h2>
+      <p class="note">Confirmed from the <code>ArenaShop</code> class: a 5-item <b>Soul</b> shop and a <b>Token</b> shop (Arena Tokens, earned by fighting in the Arena) with 28 regular purchase items, 12 "skill level" items whose cost climbs ×1.03 per level, and a one-time Fishing Bonuses item. Cost formulas, max levels and effects below are read straight from each item's <code>Click*</code>/<code>ClickPurchase</code> code. The item that matters for the Attack/Defense calculator is <b>Minion Atk &amp; Def</b> (+2.5% each, max 10, <code>ATMinionStats</code>) — it auto-syncs into the Total Attack/Defense card on the Stage Roadmap tab. Fighting itself (how many Tokens per run, monster pits, champion pit) isn't modeled.</p>
+      <div class="row"><label>Arena Tokens on hand</label><input type="number" id="arTokens" value="0" min="0" step="any"></div>
+      <div class="row"><label>Tribute Shop "Arena Convergence" bonus <span style="color:var(--sub);">(divides the 12 skill-level costs by max(1, 1+bonus); read it off Tribute page 3 — not modeled there, so type it in)</span></label><input type="number" id="arConv" value="0" min="0" step="any"></div>
+      <div class="result" style="margin-top:12px;">
+        <div class="label">Tokens still needed to max every Token-shop item &nbsp;/&nbsp; to afford with your balance</div>
+        <div class="big" id="arSummary">—</div>
+      </div>
+      <table id="arTable"></table>
+      <div class="gap-note">Skill-level rows (Offense &amp; Defense through Hell Spirit) raise the <i>Hero/wizard's</i> stats (they are read by <code>HeroDamage.Update</code>), not the Minion — they are tracked here for completeness only. "Fishing Bonuses" needs Fishing level 351+ to do anything (bonus = (1.05^(skill−350) − 1) × 5). Warrior / Dark Shadow items affect the Arena fight only. The Soul-shop "Quest Token" and "Auto Quest" entries are daily buys.</div>
+    </div>
+    <div class="card">
+      <h2>Soul shop <span style="font-weight:400;color:var(--sub);">(paid in Soul)</span></h2>
+      <table id="arSoulTable"></table>
+    </div>
+  </div>
+
+  <!-- GENERATOR V2 -->
+  <div class="panel" id="genv2">
+    <div class="card">
+      <h2>Generator V2 <span style="font-weight:400;color:var(--sub);">(permanent-bonus charges, unlocked from Stage 380)</span></h2>
+      <p class="note">Confirmed from <code>PowerMana.V2ChargeRelease</code> and the in-game tooltip (<code>Tooltip.SetGenV2ToolTip</code>). Releasing a charge on a category converts a slice of your current Essence into a permanent "X%" bonus: <code>gain = floor( log<sub>base</sub>(Essence+1) × (1+Machinist GenV2) × (1+Tribute level×0.04) × ((1+Trophy 15%)+Trophy 35%) × (1+Pull Gen%/100) )</code>. Each release also spends one charge, consumes <code>floor(log<sub>base</sub>(Essence+1))</code>×base worth of Essence (see the column), and grants 5000 × min(AchievementTrophy/10000+1, 2) Spirit. Inside Challenge 14 the game swaps Essence for Total Essence^0.9 (not modeled here).</p>
+      <div class="row"><label>Highest Stage</label><input type="number" id="gv2Stage" value="1" min="1" step="1"></div>
+      <div class="row"><label>Current Essence <span style="color:var(--sub);">(accepts 1.4e20)</span></label><input type="text" id="gv2Essence" value="1e20"></div>
+      <div class="row"><label>Charges: current / max</label><input type="number" id="gv2Cur" value="3" min="0" step="1" style="width:48%;"> / <input type="number" id="gv2Max" value="3" min="0" step="1" style="width:48%;"></div>
+      <div class="row"><label>Machinist talent GenV2 bonus <span style="color:var(--sub);">(MachinistGenV2Bonus, as a fraction)</span></label><input type="number" id="gv2Mach" value="0" min="0" step="0.01"></div>
+      <div class="row"><label>Tribute "Generator V2 Bonus" level <span style="color:var(--sub);">(auto-filled from Tribute Shop)</span></label><input type="number" id="gv2Trib" value="0" min="0" step="1"></div>
+      <div class="row"><label>Trophy GenV2Bonus15 / GenV2Bonus35 <span style="color:var(--sub);">(raw values; imported from your save. Typically 0 until bought)</span></label><input type="number" id="gv2T15" value="0" min="0" step="0.01" style="width:48%;"> / <input type="number" id="gv2T35" value="0" min="0" step="0.01" style="width:48%;"></div>
+      <div class="row"><label>Pull Gen Bonus (%) <span style="color:var(--sub);">(PullGenBonus from gear/crystals)</span></label><input type="number" id="gv2Pull" value="0" min="0" step="0.01"></div>
+      <div class="result" style="margin-top:12px;"><div class="label">Total multiplier on the log term</div><div class="big" id="gv2Mult">—</div></div>
+      <table id="gv2Table"></table>
+      <div class="gap-note"><b>Effects confirmed:</b> Dungeon % multiplies the Dungeon bonus by (1 + X/100) (<code>Tooltip.TTDungeonBonusBonus</code>; the same value also feeds Dungeon states, monster attack, gold/exp, Meditation exp, Reincarnation bonus, Battlefield and Slime adventure exp); Alchemy % multiplies every Alchemy Lab bonus by (1 + X/100) (<code>AlchemyLab.GetBonusValue</code>); Demons % boosts the Boost All values per demon. <b>Not yet traced:</b> the exact form for Demons and what Conjuring, Generator and Slime % feed, so no ranking of categories is given. Charge-refill timer (12 h base, shortened by the GenV2Time trophies) is not modeled.</div>
+    </div>
+  </div>
+
+  <!-- WORLD BOSS -->
+  <div class="panel" id="worldboss">
+    <div class="card">
+      <h2>World Boss <span style="font-weight:400;color:var(--sub);">(six bosses that respawn on a timer; fights run automatically with the Dullahan Auto upgrade)</span></h2>
+      <p class="note">Confirmed from <code>WorldBoss.WorldBossAttack / GalgAttack / AuburnedAttack / BossStates</code>. Each boss has its own HP formula, its own unlock gate and, notably, its own <b>damage stat</b>: Dullahan and Kane hit with your Attack, Galg with your <b>Defense</b>, Auburned with your <b>Pet Level</b>, Endavers with your <b>Highest Stage</b>, and Terra Scraper with <b>Warrior level + Dark Shadow level</b> (Arena fighters). Every hit can crit (Dullahan, Galg, Kane, Auburned; Kane has no double) and double (not Kane or Endavers); Terra Scraper uses fixed 10% crit (x3) and 5% double (x2). After a kill the boss respawns after <code>3600 - BossTime5 - BossTime10</code> seconds.</p>
+      <div class="row"><label>Pet Level / Highest Stage <span style="color:var(--sub);">(synced from the Total Attack/Defense card)</span></label><input type="number" id="wbLevel" value="1" min="1" step="1" style="width:48%;"> / <input type="number" id="wbStage" value="1" min="1" step="1" style="width:48%;"></div>
+      <div class="row"><label>Attack / Defense <span style="color:var(--sub);">(synced from the Total Attack/Defense card; type to override)</span></label><input type="text" id="wbAtk" value="0" style="width:48%;"> / <input type="text" id="wbDef" value="0" style="width:48%;"></div>
+      <div class="row"><label>Crit chance % / Crit damage % / Double chance %</label><input type="number" id="wbCC" value="0" step="0.01" style="width:31%;"> / <input type="number" id="wbCD" value="0" step="0.01" style="width:31%;"> / <input type="number" id="wbDC" value="0" step="0.01" style="width:31%;"></div>
+      <div class="row"><label>Warrior level / Dark Shadow level <span style="color:var(--sub);">(Arena; Terra Scraper's only damage source)</span></label><input type="number" id="wbWar" value="0" min="0" step="1" style="width:48%;"> / <input type="number" id="wbDS" value="0" min="0" step="1" style="width:48%;"></div>
+      <div class="row"><label>Respawn trophies: BossTime5 / BossTime10 <span style="color:var(--sub);">(raw values, subtracted from 3600 s)</span></label><input type="number" id="wbBT5" value="0" min="0" step="1" style="width:48%;"> / <input type="number" id="wbBT10" value="0" min="0" step="1" style="width:48%;"></div>
+      <div class="row"><label>Unlock items: Soul Shop World Boss 3 owned (1/0) / Learn To Walk Again completions / Hardest Challenge Ever completions / Infinite First Step clears</label><input type="number" id="wbU3" value="0" min="0" style="width:23%;"> / <input type="number" id="wbC13" value="0" min="0" style="width:23%;"> / <input type="number" id="wbC14" value="0" min="0" style="width:23%;"> / <input type="number" id="wbIF1" value="0" min="0" style="width:23%;"></div>
+      <table id="wbTable"></table>
+      <div class="gap-note"><b>Not modeled:</b> boss rewards and drop chances (<code>WorldRaidReward</code>), and the manual "Join fight" button flow (this assumes the boss is actively being fought, as with Dullahan Auto). Times are the average over crits and doubles, so a single kill can vary. A boss is fought continuously only while its cooldown is 0; the cycle column adds the cooldown to the kill time. Your crit / double numbers are the game's own saved values.</div>
+    </div>
+  </div>
+
+  <!-- ALCHEMY LAB -->
+  <div class="panel" id="alchlab">
+    <div class="card">
+      <h2>Alchemy Lab <span style="font-weight:400;color:var(--sub);">(permanent potion bonuses from completed mixes)</span></h2>
+      <p class="note">Confirmed from <code>AlchemyLab.GetBonusValue</code> (the exact path the game uses for gameplay) with the per-bonus table from <code>WaifuMain</code> (names, additive flag, adjust factor). Every completed mix of a recipe raises that recipe's bonus: <code>base = 1.5<sup>log<sub>2.5</sub>(mixes)</sup></code> (= mixes<sup>0.4425</sup>), then <code>coef = (1+Cooking S-row 6 buff) × (1+Arena/AB bonus) × (1+Black Hole 3 level/20) × (1+Cooking S-row 6 perma) × adjust × (1+Synergy layer 20) × 1.0025<sup>Pomos level</sup> × (1+Slime Lab alchemy) × (1+Generator V2 Alchemy %/100)</code>. Multiplier-type bonuses are <code>1 + coef×base×0.01</code>; additive-type bonuses are <code>coef×base</code>. Drop Chance is capped at 26 and Monster Rarity at 11. Mixes are what you grind, so the useful numbers are the gain from more mixes.</p>
+      <div class="row"><label>Cooking S-row 6 buff / perma</label><input type="number" id="alSR6b" value="0" step="0.01" style="width:48%;"> / <input type="number" id="alSR6p" value="0" step="0.01" style="width:48%;"></div>
+      <div class="row"><label>AB Alchemy bonus / Slime Lab alchemy bonus (SliAlchemyBonus)</label><input type="number" id="alAB" value="0" step="0.01" style="width:48%;"> / <input type="number" id="alSli" value="0" step="0.01" style="width:48%;"></div>
+      <div class="row"><label>Black Hole 3 level / Synergy layer 20 bonus <span style="color:var(--sub);">(Darkness and Synergy are not modeled here: type them in)</span></label><input type="number" id="alBH" value="0" step="1" style="width:48%;"> / <input type="number" id="alSym" value="0" step="0.01" style="width:48%;"></div>
+      <div class="row"><label>Pomos alchemy level / Generator V2 Alchemy % <span style="color:var(--sub);">(V2 % synced from the Generator V2 tab)</span></label><input type="number" id="alPomos" value="0" step="1" style="width:48%;"> / <input type="number" id="alG5" value="0" step="0.01" style="width:48%;"></div>
+      <table id="alTable"></table>
+      <div class="gap-note"><b>Not modeled:</b> which potion colors to mix for each recipe, recipe discovery/prestige, mix speed and slime juice. Inside some challenges the game forces a list of these bonuses off; that is not modeled either. The game keeps 40 mix counters, so bonuses 41 to 43 in the name list have no counter here. "Adjust" for Respawn Rate, Speed Bonus, Unknown Bonus and Classes Exp is the table's default of 1.0. Verified against an in-game screenshot: Drop Chance 100 mixes = 4.60%, Mana Refill 6.65%, Mana Power 24.67%, Gold Drop 12.01%, Meditation 30.73%, Spell Bonus 59.16% all match, and the in-game Drop Chance hard cap of 2500% equals the 26x cap. Recipes are re-randomized on every Alchemy prestige, so only the unique/special recipes (Museum +5%, Recipe Re-Roll) could ever be pinned down.</div>
+    </div>
+  </div>
+
+  <!-- MINION -->
+  <div class="panel" id="minion">
+    <div class="card">
+      <h2>Minion <span style="font-weight:400;color:var(--sub);">(level, exp and the six combat stats)</span></h2>
+      <p class="note">Confirmed from <code>MinionMain.PetLevelUp</code> and <code>MinionMain.Update</code>. Exp needed per level is a piecewise-linear table (verified against your save: level 200 needs 910,000). The combat stats are exact formulas; the equipment totals (Pull values) are not stored in the save, so the tab can back-solve the <b>implied Pull</b> from the stat the game saved, which also shows whether every other term is right.</p>
+      <div class="row"><label>Pet level / current exp / target level</label><input type="number" id="mnLvl" value="1" min="1" step="1" style="width:31%;"> / <input type="number" id="mnExp" value="0" min="0" step="any" style="width:31%;"> / <input type="number" id="mnTgt" value="1" min="1" step="1" style="width:31%;"></div>
+      <div class="result" style="margin-top:12px;"><div class="label">Exp to next level &nbsp;/&nbsp; progress &nbsp;/&nbsp; exp still needed for the target level</div><div class="big" id="mnExpOut">—</div></div>
+    </div>
+    <div class="card">
+      <h2>Combat stats</h2>
+      <div class="row"><label>Equipment Pull totals: crit chance / crit damage / double / evade / speed % / drop %</label><input type="number" id="mnPCC" value="0" step="any" style="width:15%;"> / <input type="number" id="mnPCD" value="0" step="any" style="width:15%;"> / <input type="number" id="mnPDC" value="0" step="any" style="width:15%;"> / <input type="number" id="mnPEV" value="0" step="any" style="width:15%;"> / <input type="number" id="mnPSP" value="0" step="any" style="width:15%;"> / <input type="number" id="mnPDR" value="0" step="any" style="width:15%;"></div>
+      <div class="row"><label>Trophies: Crit 5 / Crit 10 / CritDmg 5 / CritDmg 20</label><input type="number" id="mnTc5" value="0" step="any" style="width:23%;"> / <input type="number" id="mnTc10" value="0" step="any" style="width:23%;"> / <input type="number" id="mnTd5" value="0" step="any" style="width:23%;"> / <input type="number" id="mnTd20" value="0" step="any" style="width:23%;"></div>
+      <div class="row"><label>Trophies: Double 5 / Double 10 / Drop 5 / Drop 15</label><input type="number" id="mnTx5" value="0" step="any" style="width:23%;"> / <input type="number" id="mnTx10" value="0" step="any" style="width:23%;"> / <input type="number" id="mnTr5" value="0" step="any" style="width:23%;"> / <input type="number" id="mnTr15" value="0" step="any" style="width:23%;"></div>
+      <div class="row"><label>Plaza perks: Crit perk I / Double perk I / Drop perk I / page-3 perk 8 / page-3 perk 9</label><input type="number" id="mnPPc" value="0" step="any" style="width:18%;"> / <input type="number" id="mnPPd" value="0" step="any" style="width:18%;"> / <input type="number" id="mnPPr" value="0" step="any" style="width:18%;"> / <input type="number" id="mnP38" value="0" step="any" style="width:18%;"> / <input type="number" id="mnP39" value="0" step="any" style="width:18%;"></div>
+      <div class="row"><label>Minion Lab bonus: crit damage / speed / drop <span style="color:var(--sub);">(fractions; use the refresh button)</span></label><input type="number" id="mnMLc" value="0" step="any" style="width:31%;"> / <input type="number" id="mnMLs" value="0" step="any" style="width:31%;"> / <input type="number" id="mnMLd" value="0" step="any" style="width:31%;"></div>
+      <div class="row"><label>Cooking: Line 30 buff / Row 10 perma / Line 14 buff / Row 5 perma</label><input type="number" id="mnCk30" value="0" step="any" style="width:23%;"> / <input type="number" id="mnCk10" value="0" step="any" style="width:23%;"> / <input type="number" id="mnCk14" value="0" step="any" style="width:23%;"> / <input type="number" id="mnCk5" value="0" step="any" style="width:23%;"></div>
+      <div class="row"><label>Drop: Food-shop drop chance bonus / Adventure drop rarity / Arena drop rarity level / Tribute drop rarity level / Soul drop rarity</label><input type="number" id="mnFP" value="0" step="any" style="width:18%;"> / <input type="number" id="mnAdv" value="0" step="any" style="width:18%;"> / <input type="number" id="mnAT" value="0" step="any" style="width:18%;"> / <input type="number" id="mnTS" value="0" step="any" style="width:18%;"> / <input type="number" id="mnSO" value="0" step="any" style="width:18%;"></div>
+      <div class="row"><label>Alchemy Lab Drop Chance multiplier <span style="color:var(--sub);">(from the Alchemy Lab tab)</span></label><input type="number" id="mnAlch" value="0" step="any" style="width:31%;"></div>
+      <div class="row"><button id="mnRefresh" type="button">Refresh from Minion Lab / Alchemy Lab / Tribute tabs</button></div>
+      <table id="mnTable"></table>
+      <div class="gap-note"><b>Not modeled:</b> how much exp each kill gives (that is in the fighting code, not here). The Drop Chance formula was decoded in full, but the implied Pull for it also absorbs any cooking Line 14 buff that is active when you save. Speed is the game's raw <code>PetAttackSpeed</code> number (lower is faster). Equipment Pull totals come from Adventure Items and Crafting crystals and are typed in.</div>
     </div>
   </div>
 
@@ -523,8 +646,8 @@ td,th{overflow-wrap:anywhere;}
       <div class="row"><label>Plaza Prestige: MinionAtkPerkI / MinionDefPerkI level <span style="color:var(--sub);">(from the Plaza Prestige tab's Minion Attack/Defense perk)</span></label>
         <input type="number" id="tadPPAtk" value="0" min="0" step="1" style="width:48%;"> / <input type="number" id="tadPPDef" value="0" min="0" step="1" style="width:48%;">
       </div>
-      <div class="row"><label>Arena Shop: ATMinionStats level <span style="color:var(--sub);">(Arena isn't built out as its own tab yet — enter the level directly if you've bought it)</span></label><input type="number" id="tadArena" value="0" min="0" step="1"></div>
-      <div class="row"><label>Tribute Shop: TSMinionStats level <span style="color:var(--sub);">(Tribute Shop isn't built out as its own tab yet — enter the level directly if you've bought it)</span></label><input type="number" id="tadTribute" value="0" min="0" step="1"></div>
+      <div class="row"><label>Arena Shop: ATMinionStats level <span style="color:var(--sub);">(auto-filled from the Arena Shop tab's "Minion Atk &amp; Def" row)</span></label><input type="number" id="tadArena" value="0" min="0" step="1" readonly style="background:var(--panel2,rgba(255,255,255,0.03));"></div>
+      <div class="row"><label>Tribute Shop: TSMinionStats level <span style="color:var(--sub);">(auto-filled from the Tribute Shop tab's "Minion Atk & Def" row)</span></label><input type="number" id="tadTribute" value="0" min="0" step="1" readonly style="background:var(--panel2,rgba(255,255,255,0.03));"></div>
       <div class="row"><label>Soul Shop: SoulAdvBoostBonus multiplier <span style="color:var(--sub);">(from the Soul Shop tab's Adventure Boost potion/item — 1.0 if none active)</span></label><input type="number" id="tadSoul" value="1" min="1" step="0.01"></div>
       <div class="result" style="margin-top:12px;">
         <div class="label">Total Attack &nbsp;/&nbsp; Total Defense &nbsp;/&nbsp; Max HP (= Defense × 10)</div>
@@ -535,7 +658,7 @@ td,th{overflow-wrap:anywhere;}
     </div>
     <div class="card">
       <h2>What's next from here</h2>
-      <div class="row"><label>Current stage</label><input type="number" id="stageCurrentInput" value="305" min="1" step="1"></div>
+      <div class="row"><label>Current stage <span style="color:var(--sub);">(auto-fills from your save's MaxStage on load, same value shared with Reincarnation/Trophy Shop/the Total Attack-Defense calculator — edit freely)</span></label><input type="number" id="stageCurrentInput" value="305" min="1" step="1"></div>
       <div class="note" id="stageNextNote" style="margin:8px 0;"></div>
       <table id="stageNextTable"></table>
     </div>
@@ -556,7 +679,7 @@ td,th{overflow-wrap:anywhere;}
       <div class="row"><label>Extra daily-accrual multiplier <span style="color:var(--sub)">(Talent + Trophy-mastery + Infinite Challenge bonuses, not modeled — 1 if unsure)</span></label><input type="number" id="trophyExtraMult" value="1" min="0" step="0.01"></div>
       <div class="row"><label>Current Trophy Points balance</label><input type="number" id="trophyBalance" value="0" min="0" step="1"></div>
       <div class="result" style="margin-top:12px;">
-        <div class="label">Daily Trophy Points earned &nbsp;/&nbsp; Trophy Points still needed for everything checked below &nbsp;/&nbsp; days to afford it</div>
+        <div class="label">Daily Trophy Points earned &nbsp;/&nbsp; Trophy Points still needed for everything checked below (checked = still to buy; Load Save ticks everything you don't own yet) &nbsp;/&nbsp; days to afford it</div>
         <div class="big" id="trophyTotalOut">—</div>
       </div>
       <table id="trophyTable"></table>
@@ -2441,15 +2564,54 @@ const chChallenges = [
   [14,'Hardest Challenge Ever','Reach Stage ≥ goal — completing resets Town & clears Reproduction Demons; 2nd overall unlock = Synergy V2 (Stage 670 per wiki)']
 ];
 let chCompletionCounts = {};
+const chData = {"1":{"name":"First Step","comps":[{"unlock":"Beat stage 75","goal":"Beat stage 100","rewards":["Mana Refill: 250","Mana Cap: 1,000,000","EXP: 200,000","Souls: 5,135","Dungeon #4"],"recs":["(Exp shop)Base Mana refill : 250 / Base mana power 150 / Unique 1(10% for 10k EXP) Base mana refill + Power In main Game(outside of challenge) not during a challenge","Some adventure gear with mana refill+mana power (Z3, Z4)","Reincarnation bonus generator (EXP Shop)"],"tips":["The challenge is simple. You start again from stage 1 with 0 reincarnation bonus and most parts locked again. You keep your exp/soul shop purchases, dungeon boosts, and minion gear. Some players think it's best to start this challenge as soon as it's unlocked, others recommend to wait for a bit longer to boost base mana and unlock new adventure zone (stage 90). Basically you can start this challenge whenever you feel comfortable and understand the basics of the game.","If you want it to be quick and easy wait until you have enough EXP for the reincarnation bonus generator.","Concentrate your gear and demons on mana refill until you've finished all the conjurations, then switch to mana power to progress as far as possible. Reincarnate once things slow down and your reincarnate bonus has risen significantly. Keep in mind that town is important as well, so build a few temple level to lower the enemy stats/School for increase your own stats ."]},{"unlock":"Complete First Step 1","goal":"Beat stage 130","rewards":["Mana Refill: 500","Mana Cap: 2,000,000","EXP: 420,000","Souls: 6196","New Loadout slot"],"recs":["(Exp shop)Base Mana refill : 1000 / Base mana power 600 / Unique 4(2.1m exp)","Items from Z5 (stage 120)","Complete Inferno 1 challenge","Quick and easy if you did Inferno 1 first. If not, at least have the Z5 items and reach zone 130 outside of the challenge. If you didn't do either expect it to take a while."],"tips":["Concentrate your gear and demons on mana refill until you've finished all the conjurations, then switch to mana power to progress as far as possible. Reincarnate once things slow down and your reincarnate bonus has risen significantly.","You gonna need to build at least 5m mana cap to finish this challenge in about 1-2 days and get some level in temple,school,enchanter and tailor in the town.","Stage 130 enemy has Strength 1.6T and Defense 861.61B (0 temples, rounded up.)"]},{"unlock":"Complete First Step 2","goal":"Beat stage 160","rewards":["Mana Refill: 750","Mana Cap: 3M","EXP: 660k","Souls: 7,280","Mana Refill (NOT Mana Cap) earned from challenges available during challenges"],"recs":["(Exp shop)Base Mana refill : 2200/ Base mana power 1300","Complete Inferno 1 challenge","Minion gear from Z6 (stage 150)","Dungeon levels: 21 off/def, 9 mana, 9 essence","Like First Step 1 and 2, same rules, higher goal. Demons Master 1 can be done before or after this, but after is recommended because the reward (more mana fill during challenges) is a big help in DM1."],"tips":["Aim for 10-20m mana cap in your final reincarnation, with demons and gear on mana power that should be enough to get the required stats in under a day.Don't forget to spend your Exp into Mana Refill/Mana Power in the exp shop,it's really important to create higher mana cap/ spell power faster (2:1 => 200 Mana refill/100 Mana Power each purchase will help you). Remember that you should have 2 or 3 pieces of gear with \"spell bonus\" on them, which directly raises your off/def. Don't forget to equip them for the last push since they will get you past one or two more stages. FS3 can be done in about 2 days with 20m mana cap , school 35 / temple 45 / enchanter 25 / tailor 20 . Focus dungeon floor a bit : 25 off/def and 10-14 mana refill/power .","Stage 160 enemy has maximum Strength 1.5Qa and Defense 711T (0 temples, rounded up.)"]},{"unlock":"Complete First Step 3","goal":"Beat stage 190","rewards":["Mana Refill: 1000","Mana Cap: 4M","EXP: 1.04M","Souls: 8,548","Unlock bonus monster rarity and drop rate in EXP Shop (misc)"],"recs":["(Exp shop)Base Mana refill : 15 000/ Base mana power 7500","Complete Demons Master 1 challenge","Complete Blade Storm 1 challenge","Complete Inferno 2 challenge","Items from Z7 (stage 180)"],"tips":["As in previous First Steps only, with higher goal. If you haven't been farming for items or done any crafting, you should get those done before starting this one. This one doesn't have a very good reward so you can wait to do it until it's fairly trivial (after Time Loop 1.)","With 100M mana cap,some levels into Suffocation spell,focus gold on temple,spell bonus,enchanter and tailor , this challenge can be done in 35-40min . A slime can be helpful .","Stage 190 enemy has maximum Strength 3.1Qi and Defense 1.2Qi (0 temples, rounded up.)"]},{"unlock":"Complete First Step 4","goal":"Beat stage 220","rewards":["Mana Refill: 1500 Mana Refill","Mana Cap: 50M","EXP:42 M","Souls:11.6k Souls","Unlock Pet Point slot in Minion Lab"],"recs":["(Exp shop)Base Mana refill : 22-26k / Base mana power 10k","Complete Time Loop 3 Challenge","Complete Air Elemental 1 Challenge","With 150M mana cap cap / 7e9 Mana power , this challenge can be easily done under 1 hour if you beat Air Elemental 1 and Time Loop 3 Challenges ."],"tips":[]}]},"2":{"name":"Inferno","comps":[{"unlock":"Buy from EXP Shop","goal":"Train 500 (300 on mobile) level Firewall","rewards":["Mana Refill: 250","Mana Cap: 2,385,380","EXP: 539,053","Souls: 7830","Unlock \"Animated Blades\" and \"Animated Shields\" Spells","Unlocks Blade Storm Challenge","Boost power of each Spell by 50% of base"],"recs":["(Exp shop)Base Mana refill : 500 / Base mana power 400/ Unique 2(10% for 50k EXP) +3 (20% for 300k EXP)","Complete First Step 1 Challenge","Reincarnation bonus generator (EXP Shop) if you didn't get it before FS1","Z3 and Z4 adventure gear (also get to stage 120 to unlock z5)","This challenge should probably be done before First Step 2, because the unique rewards will help a lot with that, while most of the rewards from FS2 would be disabled for Inferno 1.","In the beginning concentrate your gear and demons on mana refill to conjure and raise your mana cap. After one or two reincarnations switch everything to mana power.","Limit your town purchases to Pagoda and Altar (after dumping a few levels into Gold) The mana meditation helps mana power and the extra essence generated can also be dumped into mana power via the generator.","300 Firewall requires X exp. For reference, with X mana and X total mana power it takes around Xh.","500 Firewall requires 1.50E+16 exp. Aim for ~2.6m mana and 65k mana power to get it in around 24h.","For reference, with 1.6m mana and 100k total mana power it takes around 24h."],"tips":[]},{"unlock":"Complete Inferno 1","goal":"Train 15k (10k on mobile) level Firewall","rewards":["Mana Refill: 500","Mana Cap: 4M","EXP: 550k","Souls: 10,685","New Loadout Slot in Adventure","Boost power of each Spell by 50% of base"],"recs":["(Exp shop)Base Mana refill : 9000 / Base mana power 2400","Complete Blade Storm 1 Challenge","Blade Storm 1 takes less time to complete and gives better rewards, so it should be done before this."],"tips":["This requires about five times as much spell exp as Blade Storm 1. Use the calculator spreadsheet to see how long that'll take with your target mana cap and power. For example, it takes 40m mana and 4m mana power to finish in about 24 hours."]},{"unlock":"Complete Inferno 2","goal":"Train 450k level Firewall","rewards":["Mana Refill: 750","Mana Cap: 51M","EXP: 97M","Souls: 14,700","Boost power of each spell by 50% of base"],"recs":["Complete Time Loop 3 challenge","(Exp Shop)Base Mana Refill : 24k + / Base Mana Power : 13k","450k Firewall requires 1.22E+22 exp, but by the time you've done TL3 you should be able to 'black bar' Firewall, doing 50 per second and finishing the challenge in 2.5 hours.","You could do the challenge much earlier, but the reward is fairly small for that stage of the game so there's no real reason to."],"tips":[]}]},"3":{"name":"Demons Master","comps":[{"unlock":"Get 160 Temporary Demons","goal":"Reach 600 Demons","rewards":["Mana Refill: 500","Mana Cap: 5,000,000","EXP: 265,000","Souls: 8,028","Dungeon #5","Auto Spirit in Gathering","+1 demon for every left side conjure spell."],"recs":["(Exp shop)Base Mana refill : 4000 / Base mana power 1400","Complete Inferno 1 challenge","Complete First Step 3 challenge","Items from Z6 (stage 150)","This challenge can be done either before or after First Step 3 , but after is recommended because the reward from that (more mana fill during challenges) will make this faster."],"tips":["Keep in mind that nothing really matters in this challenge except mana cap, and therefore mana refill. Always keep your demons and gear focused on mana refill, and only spend generator charges on mana refill and reincarnation bonus unless you've bought generator upgrades and have extra charges to spread around.","600 demons requires roughly 19M mana cap.","With Newbie Conjuring Demons Trophy this can be completed with 3M mana cap and Lvl 4 Sanctuary."]},{"unlock":"Complete Demons Master 1","goal":"Reach 1500 Demons","rewards":["Mana Refill: 1000","Mana Cap: 16,154,750","EXP: 1,912,224","Souls: 26,358","+1 demon for every left side conjure spell."],"recs":["(Exp shop)Base Mana refill : 5000/ Base mana power 2000","Newbie Conjuring Demons Trophy & Pro Conjuring Demons Trophy"],"tips":["The addition of trophies made this challenge extraordinarily easy. With both Newbie and Pro Conjuring Demons Trophies, this challenge only requires you to have roughly 5.25m mana cap and Lvl 4 Sanctuary to obtain 1500 demons. With these trophies, you can basically complete DM 1 & DM 2 back-to-back."]}]},"4":{"name":"No Conjuring","comps":[{"unlock":"Conjure 4000 times","goal":"Clear Stage 140 without conjuring","rewards":["Mana Refill: 500","Mana Cap: 15M","EXP: 3.9M","Souls: 16,026","Dungeon #3","Reduces Conjuring cost by 5%"],"recs":["(Exp shop)Base Mana refill : 5800 / Base mana power 1800","Complete Blade Storm 1 Challenge","Spell Bonus Trophy (Newbie or Pro)","1 hour Potions (Mana, Rewards and M.E.D) from the soul shop (Pots)","Cooking (Optional) lvl 1 or 2 (Stage 175)","Z6/WB1/T1 Minion Gear + Mana refill/Meditation gems (Crafting) maxed if possible","Some slimes (Gold Drop, Mana refill and Mana power)","You get no conjuring. That means no demons, generator, shadows, or gathering either. This challenge is kinda rough but timing everything perfectly will help you to progress through this \"Tough Challenge\" ."],"tips":["The only thing you can really do to affect your progress is switching minion gear and build reincarnation bonus. Make sure to use permanent demon gear when it's possible in addition to mana refill or mana power. Don't forget spell bonus when pushing levels. Spend a couple hours raising your mana cap then reincarnate after you push some stages. Your final mana cap goal should be around 7-14m and reincarnation bonus 100-150%.","Once the challenge starts, focus Spell leveling by allocating Mana in Firewall/Fear and Phantom Soldiers/Confusion and push max stage as far as possible. Switch to Gold gear and buy Town upgrades (Cottage, House, School, Temple, Enchanter, Tailor). The first lives are for building Reincarnation bonus, so level 10-20 for each should be fine. Once you have 20-30 levels in Firewall/Fear and 5 levels in Phantom Soldiers/Confusion, it's time to switch to Meditation gear to build some reincarnation bonus. Push Stages again then Reincarnate! Repeat : Spell push > Gold Farm & Town Upgrade > Meditation > Push stages again > Reincarnate.","The next life will be different, this time you have to switch to Mana Refill gear and build some Mana Cap before reincarnating (When your reincarnation bonus is 80% +, remember to use the potions to boost yourself a bit). Do the same steps until you can reach 100%+ reincarnation bonus and 5m+ mana cap. The last stage is push spells level : 60 Firewall/Fear, 15 Phantom Soldiers/Confusion, 5 Animated Blades/Shields and Town upgrades : 30 School / 35-40 Temple / 10 Enchanter / 10 Tailor.","This challenge can be done in about 8-10 hours. Stage 140 stats without Temples are 14.6T Offense and 7.48T Defense."]},{"unlock":"Complete No Conjuring 1","goal":"Clear Stage 170 without conjuring","rewards":["Mana Refill: 1000","Mana Cap: 55M","EXP: 36M","Souls: 33,882","Reduces Conjuring cost by 5%"],"recs":["(Exp shop)Base Mana refill : 16 000/ Base mana power 8 000","Complete Time Loop 2 challenge","Some levels in Battle Mage and Druid","Stage 170 boss stats without temple are 1.8e16 Offense and 7.8e15 Defense","Classes still work during No Conjuring, so having significant bonuses from them will make this very quick. If you don't have them it's still doable, just much slower."],"tips":[]},{"unlock":"Complete No Conjuring 2","goal":"Clear Stage 200 without conjuring","rewards":["Mana Refill: 1500","Mana Cap: 132M","EXP: 11.925M","Souls: 50,567","Fishing Rod","Reduces Conjuring cost by 5%"],"recs":["(Exp shop)Base Mana refill : 30k +/ Base mana power 15-17k+","Complete First Step 5 challenge","Complete Air Elemental 1 challenge","Complete Inferno 3 challenge","Stage 200 boss stats without temple are 45.5e18 Offense and 16.3e18 Defense.","This is significantly more difficult than First Step 5 and the rewards are fairly small, so it should probably be done after the challenges that directly raise your offense and defense.","With 140M+ mana cap,6e7 or 8e7+ mana power,this challenge can be done in 4-8hours ."],"tips":[]}]},"5":{"name":"Blade Storm","comps":[{"unlock":"Complete Inferno 1","goal":"Train 60 Animated Blades","rewards":["Mana Refill: 500","Mana Cap: 20M","EXP: 5.6M","Souls: 5254","Unlock Suffocation and Paralysis spells","Boost power of each spell by 100% of base."],"recs":["(Exp shop)Base Mana refill : 5000 / Base mana power 1600 / Unique 5 (16.8m EXP)","Finish Demons Master 1 challenge","Max all common and rare minion gear (Z1-Z6)","Same strategy as Inferno 1, but requires a lot more mana power. Use the spreadsheet to get an estimate of how long it'll take with your target mana cap and power.","For example, with 18m mana and 1.7m power it takes about 24 hours."],"tips":[]},{"unlock":"Complete Blade Storm 1","goal":"Train 1500 Animated Blades","rewards":["Mana Refill: 1000","Mana Cap: 70M","EXP: 51M","Souls: 10,684","Boost power of each spell by 100% of base.","Slime Bed"],"recs":["(Exp shop)Base Mana refill : 18 000/ Base mana power 9 000","Complete Time Loop 2 challenge","Complete No Conjuring 2 challenge","If you have classes and T3/T4 plaza buildings this should be doable in a few hours. If not it may take a day or two."],"tips":[]},{"unlock":"Complete Blade Storm 2","goal":"Train 30k Animated Blades","rewards":["Mana Refill:1500","Mana Cap:60M","EXP:46M","Souls:17,840","Boost power of each spell by 100% of base.","Slime Bed"],"recs":["Complete Real Estate 1 challenge","corew:","roughly 1E24 XP required"],"tips":[]},{"unlock":"Complete Blade Storm 3","goal":"Train 450k Animated Blades","rewards":["Mana Refill: 2,000","Mana Cap: 80M","EXP: ~96M","Souls: 24,032","Boost power of each spell by 100% of base.","Mixing Vat for Alchemy Lab"],"recs":["It takes 1.458e26 exp total to reach 450k levels of animated blade"],"tips":[]},{"unlock":"Complete Blade Storm 4","goal":"Train 3M Animated Blades","rewards":["Mana Refill: 2.500","Mana Cap: 601.264.903","EXP: 595.917.697","Souls: 29.785","Boost power of each spell by 100% of base.","Slime Adventure Party slot"],"recs":[],"tips":["It takes 6,48e27 exp total to reach 3 million levels of animated blades. If you have enough mana and mana power to max out the leveling rate of animated blades (aka to get a solid bar, the max of 50 levels per second) then it will take almost 17 hours to finish.","There are late game trophies that can increase the max leveling rate of spells by 2x or 5x, but they are not high priority, so it's recommended players get this challenge out of the way as soon as they can do it in the minimum time.","Note: This challenge can still be completed after doing OPM3 and transforming Animated Blades into Blade Fury, but Blade Fury is the third most expensive spell in the game so it will be impossible until much later (~s500)."]}]},"8":{"name":"In Spiritus","comps":[{"unlock":"Next life Spirit Cap 200k","goal":"Reach 150k Spirit Cap in next life","rewards":["Mana Refill: 750","Mana Cap: 25M","EXP: 13M","Souls: 8,013","Spirit refill speed dungeon"],"recs":["(Exp shop)Base Mana refill : 6400 / Base mana power 1800","Spirit Refill gear (ideally including the T1 helm and armor)","A spirit refill slime + A Mana refill Slime (helps significantly)","Conjuring Dungeon Floor 5 (To reduce the cost of conjuring spells)","Your Spirit refill halves every time you reincarnate, so you want to avoid doing that too much. If you don't mind lower gold income and waiting a bit longer, this is a good time to get some gathering and crafting done."],"tips":["Focus on building Mana Cap to 1.400E+07(14 000 000) . So as always full mana refill(demons + minion gear + Mana refill Slime) . You'll want to reincarnate at least twice to build this cap.A Mana Refill Slime would be very helpful . Push stage to get some gold and put them in house(lvl 20) and cottage(lvl 8 or 10) to reduce the Refill Time . Reincarnate when you got a decent mana cap(at least half of the required goal: 7m or 5m) then do the same for the next mana cap build . Once it's done,Max conjure left and right side(The most important spells being Happis at lvl 7 which increase Spirit refill(demons reproduction) by 21 and Bibbidi level 12 which reduce Spirit Refill Timer . Wizzy lvl 1 to increase Happis/Bibbidi bonuses). Whenever you spend gold into Quarters in town,put demons into the demons reproduction to increase spirit refill(Pens reduce the refill time). Remember to buy 5-8 sanctuary in town to reduce the cost of conjuring and have at least Conjuring Dungeon floor 5 to reduce the cost of the conjuring spells . Switch minion gears to spirit refill and get a Spirit refill Slime and then just wait until challenge is done . Spend your gold into Quarters and Pens and just focus them untill challenge is done . Put your demons into gathering and activate the auto spirit in your settings .","With 14m mana cap it will take 2 days to finish this challenge.Remember to spend the 14m mana into Plaza (Hell well 2 / Aqueduct 1) before the challenge finish"]},{"unlock":"Complete In Spiritus 1","goal":"Reach 500k Spirit Cap in next life","rewards":["Mana Refill: 1500","Mana Cap: 50M","EXP: 30M","Souls: 16,440","Removes Spirit Refill halving on reincarnation."],"recs":["(Exp shop)Base Mana refill : 8000 / Base mana power 2400","Reach level stage 180 to unlock fishing and the second world boss if you didn't already","Do it soon after IS1 but don't forget to climb some Spirit Refill Dungeon floors before. It takes time (about a week) but it's arguably the most important challenge in the game","Mana Refill + Spirit Refill Slimes","Conjuring Dungeon Floor 5 (To reduce the cost of conjuring spells)","Spirit Refill Dungeon Floor 5","Demon Reproduction Cap Trophy","Same as In Spiritus 1, but nearly quadruple the fun!"],"tips":["Take advantage of being in a long challenge to focus on the Plaza without hurting your regular mana cap. Take a day to build up your mana cap as high as possible, then in your final reincarnation of the challenge, put all demons into gathering and spend your mana cap freely.","Build 50m mana cap(around 16-24 hours) and equip your Z7 / World boss 2 minion gears . Upgrade quarters and pens to level 10-11 and remember to put demons into demons reproduction(Demons tab at the bottom) to increase spirit refill .Do the same as IS1 but this time you'll need Conjuring dungeon floor 5. With the basic Demon Cap Trophy and a few Spirit Refill Dungeon floors it should take around 4 days to complete. Remember to spend the 50m mana to upgrade your plaza buildings(Hell well 10 / Aqueduct 3-5) before you end the challenge. You'll generate a nice amount of logs to upgrade Plaza builds and unlock Battlefield and beat waves to earn your early Demonic Essence(at 100 DE,buy Spell Efficiency in the Demonic Essence Shop)."]}]},"6":{"name":"Time Loop","comps":[{"unlock":"500% reincarnation bonus in next life","goal":"Reach 300% reincarnation bonus in next life","rewards":["Mana Refill: 1,000","Mana Cap: 50M","EXP: 15M","Souls: 10,960","Reincarnation bonus Dungeon","Reincarnation bonus +10%"],"recs":["(Exp shop)Base Mana refill :10 000 / Base mana power 2600","Stage Auto Speed","Conj Auto Speed","Demon Auto","Gold,Essence,Mana Refill Slimes","Town Auto Speed","3 Loadout Slots","Decent Fishing and Cooking","Complete In Spiritus 2 Challenge","You have 30 minutes to increase your reincarnation bonus before you automatically reincarnate. You never lose Reincarnation bonus within the challenge though, so it doesn't hurt if you leave it unattended.","You have to time everything right to get all conjurings done and level spells enough to push stages. Put all demons into Boost gold to increase your Altar and Pagoda levels in the town to increase your Reinc %."],"tips":["Rush to Stage 120/160 and pull back slightly to a stage with good gold per sec. Once all conjurings are done, put all your mana on spells and your demons on mana power. For last minutes before reincarnation, put the your best spell bonus gear on, split your demons in offense and defense and push as far as you can get.","If you're only a few percent away, but your progress has slowed nearly to a halt, try wearing meditation/essence gear for a reincarnation. Meditation levels contribute to your reinc % directly, and extra essence will let you squeeze a few more % out of the generator. Don't forget to use meditation and essence cooking, if you have it. You'll want 150% Reinc bonus first reincarnation, and do the same steps above until you reach 300% .","Alternatively, step away for a few hours with mana and spirit refill gear on. As long as you have all the automation and In Spiritus 2, you'll keep gaining mana cap and spirit refill/cap and should be able to finish easily, when you come back."]},{"unlock":"Complete Time Loop 1","goal":"Reach 700% reincarnation bonus in next life","rewards":["Mana Refill: 2000","Mana Cap: 100M","EXP: 30,500,000","Souls: 22,256","Adventure Time Warp limit +12 hours","Reincarnation bonus +10%"],"recs":["Base Mana Refill : 13 000 / Base Mana Power : 6000-7000","Be able to reach 1400% reincarnation bonus outside challenge.","5 levels in both T4 plaza buildings (generator and dungeon bonuses)","You did the Time Loop 1, so you already know what to do!","The T4 plaza buildings make a huge difference, because they increase the reincarnation bonus directly. It should be quick and easy with 5 levels in both.","Also keep some Generator charges to use on Meditation and Reincarnation Bonus, since T4 boosts them.","With 20m mana cap and everything done right like in TL1, this challenge should be done in 45-50min. With 40-50m mana cap, it takes 35-40min."],"tips":[]},{"unlock":"Complete Time Loop 2","goal":"Reach 1600% reincarnation bonus in next life","rewards":["Mana Refill: 3,000","Mana Cap: 150M","EXP: 71,175,000","Souls: 34,755","Reincarnation bonus won't be replaced with a lower one.","Reincarnation bonus +10%"],"recs":["(Exp shop) Base Mana refill: 21 000/ Base mana power 9 000","Newbie and Pro Conjuring Demons (Trophy Shop)","Be able to reach 3000% reincarnation bonus outside challenge.","6-10 levels in T4 Plaza buildings","One or two Ancient Libraries. (This challenge is possible with 0 Library)","This should be fairly easy to do after unlocking Ancient Libraries. Save up the gems for a couple of those, while putting all the ore you gather while doing that into overbuilding the Tier 4 buildings."],"tips":["Same as TL1-TL2 ,except this time you're gonna need to build more mana cap (130-140M) to conjure the Labim spell to level 2 and also get 10-12 levels in Pagoda (Town) so you generate more essence. Spend your charges into Mana refill and reincarnation gain to get more bonuses. A temporary Reincarnation Gain of 25% / Permanent of 50% will be enough to finish this challenge in 1 hour or less.","Don't forget to buy the Air Elemental challenge in the plaza shop, before you start though. You want to keep your overbuilt plaza to quickly do the next few challenges, including that one."]}]},"7":{"name":"Farmer Life","comps":[{"unlock":"Combined level of all Gathering 150","goal":"Gather total of 3000 times using 100 Demons in each Gathering","rewards":["Mana Refill: 1000","Mana Cap: 75M","EXP: 22,500,000","Souls: 11,018","Gathering Speed Dungeon","Gathering base exp +100%"],"recs":["(Exp shop)Base Mana refill : 12 000 / Base mana power 3000","Gathering speed bonus from the battlefield","Farmer Life boost from soul shop","Unreal Set items (SZ4)","Only the number of demons in gathering is limited and the gather count doesn't reset when you reincarnate, so you're free to build your reincarnation bonus and farm exp while you wait.","If you did a lot of gathering already you may want to wear spirit refill gear early on so you can start gathering sooner.","Takes around 4-5 days to finish the challenge"],"tips":[]},{"unlock":"Complete Farmer Life 1","goal":"Gather total of 30,000 times using 100 Demons in each Gathering","rewards":["Mana Refill: 2.000","Mana Cap: 651.264.903","EXP: 618.602.516","Souls: 23.828","Gathering Ore chance +5%","Gathering Gem chance +1%","Gathering base exp +100%"],"recs":["Unlocked Baby Demons","Maxed Spirit Refill (Demons) in perk shop","At least fully leveled SZ4 gear. SZ5 also preferably","As much gathering speed as possible from the Dungeon and DE shop"],"tips":["The recommended strategy is to begin this challenge after you've unlocked baby demons but before you've created any. Since you only need 300 demons to gather the rest can be put in reproduction V2, and as a bonus that will very quickly give you enough spirit to begin gathering. Don't forget to switch main class to Druid to maximize spirit refill gain. It will be a huge boost to your spirit and essence even after the challenge is over.","If you really don't want to spend 6-7 days in the challenge, you could wait until you have maxed the gathering gear from SZ5 and SZ6 also, but 50% more gems is a huge boost to your perk point income and is probably worth getting early."]},{"unlock":"Complete Farmer Life 2","goal":"Gather total of 500,000 times using 100 Demons in each Gathering","rewards":["Mana Refill: 3,000","Mana Cap: depends on max mana cap","EXP: depends on total exp","Souls: 42,768","Gathering Ore chance +10%","Gathering Gem chance +2%","Gathering base exp +100%"],"recs":["Gathering Speed slime at least 1,000%","Stage 450","The reward for FL3 isn't particularly great and there's no convenient grind to do in parallel like FL2, so you should wait until the slime lab and alchemy let you trivialize it with a gathering speed slime."],"tips":["This can take between 28 and 4 hours 37 minutes (fastest speed possible) depending on just how much gathering speed your slime has, how much gathering gear you're willing to wear, and whether you have farming potions to use. If you want to do it in 4 hours 37 minutes, you'll need at least a 2000% slime, gear, and a potion.","To do it in 4 hours 37 minutes, you'll need about 80m spirit cap, 40m for 9 hours, and so on. Start the challenge by switching to druid and put all demons in V2 while reincarnating until you reach the number you need."]}]},"9":{"name":"Air Elemental","comps":[{"unlock":"Buy from Prestige Shop in Plaza","goal":"Level 100 Suffocation and Paralysis spell","rewards":["Mana Refill: 2,000","Mana Cap: 200M","EXP: 182,250,000","Souls: 11,721","Unlock \"Summon Dragon\" and \"Charm\" spells","Boost power of each spell by 150% of base."],"recs":["Complete Time Loop 3 challenge","(Exp Shop)Base Mana Refill : 24-25k / Base Mana Power : 9/10k","Newbie + Pro Demons Conjuring"],"tips":["For this challenge, spend a couple minutes building mana cap and some reincarnation bonus. With 100-200M mana cap / 7b mana power / 1000-1500% reincarnation bonus, you can complete this challenge in about 4 hours. Spend your charges in mana power, mana refill and Reincarnation bonus and this should be done pretty much quick."]},{"unlock":"Complete Air Elemental 1","goal":"Level 2000 Suffocation & Paralysis spell","rewards":["Mana Refill: 4,000","Mana Cap: 400M","EXP: ~722M","Souls: 24,032","Boost power of each spell by 150% of base."],"recs":["Complete Real Estate 1 challenge","8.004E+24 Exp total required for 2000 levels in both"],"tips":[]},{"unlock":"Complete Air Elemental 2","goal":"Level 30k Suffocation & Paralysis spell","rewards":["Mana Refill: 6,000","Mana Cap: 600,000,000","EXP: 1.917E9","Souls: 37,101","Boost power of each spell by 150% of base."],"recs":["~1.80E+27 Exp total required for 30000 levels in both"],"tips":[]}]},"10":{"name":"OPM","comps":[{"unlock":"250k Summon Dragon & Charm spell","goal":"Clear Stage 200 without using Spells","rewards":["Mana Refill: 75k","Mana Cap: 1.037e12","EXP:2.298e12","Souls:9843","Turns Magic Missile, Fire Bolt, Lightning Bolt, & Poison Cloud to new spells with higher bonus and exp requirements","Reduces stages respawn time by 0.1s"],"recs":["Unlock Demon Reproduction V2","1 mil base mana refill (in EXP shop)","Battle Mage 100+, Druid 50+, Conjurer 90+","T3 and T4 Plaza level 20+, Ancient Libraries 15+","Essence/meditation/gold in Battlefield level 20+ and mana cap rate 15+"],"tips":["First part of this challenge is to max your mana/spirit, so put your mana cap rate gear on your minion while your demons all go on Reproduction V2. Set class to Druid/Conjurer. Once your V2 bar ticks 2-3 times, reincarnate. Your reincarnation bonus should be at least 10,000%, if not keep pushing until it goes there. In this phase you can use 1 generator charge for reincarnation bonus","Keep doing this until you reach stage 170-175 in gold farm auto, then switch main class to Battle Mage and sub class to Conjurer, put all your demons in OFF/DEF, Cook for OFF/DEF and push!","If you think going to stage 200 is too long (it took me a few hours (4h-5h) and 3 generator charges (Reincarnation + OFF + DEF)), you can keep reincarnating for greater bonuses/mana and you can use more generator charges for OFF/DEF bonuses."]},{"unlock":"Clear OPM 1 Challenge","goal":"Clear Stage 275 without using Spells","rewards":["Mana Refill: 150k","Mana Cap: 4.145e15","EXP: 13.856e15","Souls: 20799","Turns Ice Lance, Sleep, & Firewall into new spells with higher bonus and exp requirement","Reduces stages respawn time by 0.1s"],"recs":["Reach stage 385","Capped gold, xp, mana refill and spirit refill in perks","Slime with 800%+ Essence Gen.","Reincarnation bonus at least 20,000,000%"],"tips":["Raise your mana cap to approximately 1e16 (the key point here is to get conjure spell lv 9 Wizzy or even better is lv 9 Labim), while doing this put your demons in DRV2. Equip Druid class while doing DRV2 to get better spirit refill amount. You're going to need about 5,000,000 spirit.","Once you have your spirit put your essence slime/gear on and wait. You will need a bonus of about 250,000% (clickable bonus) in both offense and defense,"]},{"unlock":"Clear O P M 2 Challenge","goal":"Clear Stage 325 without using Spells","rewards":["Mana Refill, Mana Cap, EXP, Souls","Turns Phantom Soldiers & Animated Blades in to new spells with higher bonus and exp requirement","Reduces stages respawn time by 0.1s"],"recs":["Reach stage 430","Synergy page 1 soft cap (1k on each)","First Phoenix from Perk Shop","Pro Temple Trophy"],"tips":["WARNING: The new spells require much more spell exp (mana_power * allocated_mana) than previous ones, so you may want to wait a bit with this challenge. Expect to require about 20 OOMs of spell exp - IIRC something like 1e69 for one level, exact number requires confirmation.","You will need 5 charges or more. Reincarnation, Reincarnation, Mana Refill, and offense/defense.","As with previous OPM challenges, the main goal is to get a lot of mana cap and essence. With 3.8e24 mana cap you get an extra Pocus from conjuring so that's your target. Spirit cap helps but isn't the main focus. You should end up at around 20-30 billion reincarnation%. Classes should be Battle Mage main and Conjurer sub.","Without Phoenix it took me 18 hours, and I didn't see the importance of mana cap early in the challenge and had to wait for charges.","With phoenix it took around 5 hours."]},{"unlock":"Clear OPM 3 Challenge","goal":"Clear Stage 450 without using Spells","rewards":["Mana Refill, Mana Cap, EXP, Souls","Turns Suffocation & Summon Dragon in to new spells with higher bonus and exp requirement","Reduces stages respawn time by 0.1s"],"recs":["Reach stage 560","AND/ OR reach the following suggested requirement","Reincarnation bonus: ~(1e28)","Essence: ~5e73(50e72)","Recommended Syn Stats","Off/Def: 20,000%+","Demon Bonuses: 2,000%+","Essence: 1,000%+","Conjuring: 1,000%+","Dungeon Bonus: 1,000%+","Generator Bonus: 2,500%+","Slime Bonuses: 75%+","Alchemy Bonuses: 50%+"],"tips":[]}]},"11":{"name":"No Reincarnation","comps":[{"unlock":"1 million Reincarnation Bonus (next life)","goal":"Clear Stage 250 without reincarnating","rewards":["Mana Refill: 50k","Mana Cap: 1.199e12","EXP: 2.329e12","Souls: 9831","Gives a small amount of Reincarnation Bonus to Battlefield damage (1/50,000)","Reduces stage enemy respawn time by 0.1s"],"recs":[],"tips":["If you're powerful enough to unlock it, you're good to go. Just make sure to put some exp into base mana limit before starting it. Since you can't reincarnate to increase your mana cap, that's all you get. It doesn't have to be too much, figures as low as 170m mana cap were successfully used to finish this challenge quickly.","Having higher reincarnation bonus is highly recommended for eg 2m (double the requirement). It was done in 7 min, without investing in spells and also no need to increase existing mana cap (I did it with 2.7m mana cap)."]},{"unlock":"Complete No Reincarnation 1 (chain; not restated on the wiki page)","goal":"Clear Stage 325 without reincarnating","rewards":["Mana Refill: 100k","Mana Cap: 1.5T","EXP: 312.900B","Souls: 19,598","Make Reincarnation Bonus gets a 4th bonus: Demonic Essence made this life","Reduces stages respawn time by 0.1s"],"recs":["Base stats: 50B mana cap, 50M mana power","Real Estate 2 completed","Use generator charges on Attack and Defense. Maybe one more on Mana Power, if you're not close to finishing within a few minutes. Should take less than an hour with the recommended base stats.","Stage 325 Off/Def; ~500e33 (Assuming max temples)"],"tips":[]},{"unlock":"Complete No Reincarnation 2 (chain; not restated on the wiki page)","goal":"Clear Stage 400 without reincarnating","rewards":["Mana Refill: 150k","Mana Cap: 374.326e21","EXP: 37.202e21","Souls: 34,335","Reduces stages respawn time by 0.1s"],"recs":["Clear Stage 450","Base Stats: 6.6e16 + Mana Cap, 100e12 Mana Power","Soft Cap Sinergy 1,2 (1k points on each)","T3 items","Slimes: Essence, Mana Power, Gold, Spell Bonus","Before you start: 3 charges are enough, get fish for essence and offense/defense"],"tips":["Start the challenge, get some spirit, go for essence, then gold and repeat until you max out town. Get some essence and use the first charge on Mana Power and push spells, farm essence, then use two charges on offense and defense (around 190k% on each), farm more essence, then max town again and use spell bonus items with demons on offense and defense and equip the class Battle Mage.","Took 40 minutes on these stats with relative strong slimes.","With Trophies (especially Temple trophies), it took 48 minutes with 30e15 (3e16) Mana cap and 30e12 (3e13) Mana power, no T3 items, but also relatively strong slimes. Had also cleared s450."]},{"unlock":"Complete No Reincarnation 3 (chain; not restated on the wiki page)","goal":"Clear Stage 500 without reincarnating","rewards":["Mana Refill: 200,000","Mana Cap: 1.484e54","EXP: 2.824e54","Souls: 56,694","Reduces stages respawn time by 0.1s"],"recs":["Clear Stage 585-90, should take under an hour by then, not worth it earlier. Nothing much changes in terms of strategy.","Must have Synergy bonuses (Offense/Defense/Generation/etc.)","Reincarnation Phoenix Perk 3x (recommended)"],"tips":["5-10e30 (5e30-1e31) mana cap and ~10e27 (1e28) mana power should be enough to maintain blade fury with a mana power slime even without generator charge. Generator charge for mana power gives some leeway. But generally you should have this much by when you are ready. Or better yet you should use Fireball and Telekinesis like that to help complete this."]}]},"12":{"name":"Real Estate","comps":[{"unlock":"Stage 250","goal":"Reach 200 total buildings","rewards":["Mana Refill: 500","Mana Cap: 729,132,459","EXP: 481,698,913","Souls: 9,194","100% increase in bonuses from House, School, Brothel, Enchanter, Tailor, Pagoda, and Altar in Town","Auto Plaza feature"],"recs":["(Exp shop)Base Mana refill : 75-100k/ Base mana power 40-50k","Reach stage 300 outside of challenges","Over build plaza: 20 T3 / 15-17 T4","Real Estate 1 has a cost multiplier of 10x for all town buildings compared to normal prices. The total cost of all buildings for this challenge is 1e12.","Once you've generated a few trillion gold outside of challenges without focusing on it (check the stats screen for your total gold) this should only take a few hours."],"tips":["Since gold is normally not very valuable it gets higher bonuses from each source than any other stat and you can stack it extremely high when focusing on it. Don't forget to cook gold food, switch to gold find adventuring gear, a reward pot, and save a gold find slime for this challenge if you find one and of course 40+ Levels into Alak and 3-4 Levels in Sesame(Conjuring spells) . Generator boost 60+ % Gold gain and Reincarnation bonus 4k % + . This challenge should be done in 1 hour ."]},{"unlock":"Complete Real Estate 1","goal":"Reach 300 total buildings","rewards":["Mana Refill: 1.000","Mana Cap: 521.264.903","EXP: 502.594.641","Souls: 11.914","100% increase in bonuses from House, School, Brothel, Enchanter, Tailor, Pagoda, and Altar in Town (additive)"],"recs":["Perk shop, page 2, row 3, gold multiplier 5/15.","S350+","Gold slime","Perk shop, page 2, row 3, gold multiplier 5/15. Repeated because it is the important bit.","Real Estate 2 has a cost multiplier of 100x for all town buildings compared to normal prices. The total cost of all buildings for this challenge is 1.69e18 / 1.69Qi"],"tips":[]},{"unlock":"Complete Real Estate 2","goal":"Reach 450 total buildings","rewards":["Mana Refill: 1,500","Mana Cap: 748.507e12","EXP: 6.140e15","Souls: 17,219","100% increase in bonuses from House, School, Brothel, Enchanter, Tailor, Pagoda, and Altar in Town (additive)"],"recs":["Max gold, xp, mana refill and spirit refill in perks page 2","Stage 400","Have the essential slimes: essence, gold, mana refill","Requires 5.76e27 gold total to complete, make sure you can get past this in main life."],"tips":["Reincarnate 4-6 times, then run full spirit refill gear, put demons into v2 reproduction, and reincarnate once you hit 100m spirit. Next, run full essence build until you reach 3000% reincarnation bonus and 5000% gold bonus in the generator. Your reincarnation bonus % should be around 1-200,000,000% at this point.","Be sure to have a gold % slime ready and leveled (aim for 2-5,000% bonus). Be sure to be cooking relevant meals as needed - especially reincarnation bonus meal. Be sure to push your highest stage using demons in Boost Offense/Defense.","Then equip full gold gear, put demons into Boost Gold, and run Auto Quest, and wait X amount of hours for town to auto-build to completion."]},{"unlock":"Complete Real Estate 3","goal":"Reach 600 total buildings","rewards":["Mana Refill: 2,000","Mana Cap: Based on Current Mana Cap","EXP: Based on Total Exp","Souls: 21,665","100% increase in bonuses from House, School, Brothel, Enchanter, Tailor, Pagoda, and Altar in Town (additive)"],"recs":["5e39 lifetime gold","A spirit refill slime and a gold slime","Requires 850e36 gold, completed in 1 hour with 300k% gold slime.","Reincarnate while raising spirit to 100-200m using druid and the spirit slime. Use one gen charge on reinc bonus when it's over 120k. Use a second on gold when it's over 250k and switch to gold farming."],"tips":[]},{"unlock":"Complete Real Estate 4","goal":"Reach 800 total buildings","rewards":["Mana Refill: 2,500","Mana Cap: Based on Current Mana Cap","EXP: Based on Total Exp","Souls: 32,113","100% increase in bonuses from House, School, Brothel, Enchanter, Tailor, Pagoda, and Altar in Town (additive)"],"recs":["~8-10m% Gold Slime","e6 Spirit Refill Slime","6k% Alchemy Gold Drop Bonus","4k% Synergy Gold Drop Bonus","100k% Dungeon Gold Drop Bonus","1k% Battlefield Gold Drop Bonus","Phoenix Perk x3 (possible)","Battle Mage around level 1000 for 900% Gold Drop Bonus (as sub)","First build up your spirit to 200m with Spirit Refill slime active, then reincarnate.","Get ~250m% Perma Gold Drop Generator Bonus (or more if your stats are a bit lower than listed)","put demons on Gold, equip Gold Slime, cook Gold Bonus, assign Battle Mage as sub (machinist main)","wait... (depends on how close your stats are to those I listed above)","took me 8m29s with the stats I listed above and the aquired spirit.","Requires 1.14e55 gold total."],"tips":[]},{"unlock":"Complete Real Estate 5","goal":"Reach 1000 total buildings.","rewards":["Mana Refill: 3,000","Mana Cap: Based on Current Mana Cap","EXP: Based on Total Exp","Souls: 37,892","100% increase in bonuses from House, School, Brothel, Enchanter, Tailor, Pagoda, and Altar in Town (additive)"],"recs":["~2e7-1e8 % Gold Slime (or higher)","e6 Spirit Refill Slime (optional","6e6% Alchemy Gold Drop Bonus or more","100k% Synergy Gold Drop Bonus","2e7k% Dungeon Gold Drop Bonus+","1k% Battlefield Gold Drop Bonus","Phoenix Perk x3","Dump Bonus for Gold (later on)","Battle Mage around level 1000 for 900% Gold Drop Bonus (as sub)","Can easily reach e73+ gold in normal reinc. Not really worth earlier as bonus from challenge is minor. But it","Requires 4.98e73 gold total."],"tips":[]}]},"13":{"name":"Learn To Walk Again","comps":[{"unlock":"Beat Stage 415","goal":"Clear stage 350 without Plaza (incl. perks), Slimes, Gen V2, Classes (and OPM spells); Exp Shop + Dungeons temporarily reset to 0","rewards":["Unlocks Synergy page 1"],"recs":["Spirit Cap, Mana Cap, T4 Plaza dungeon building, starting Generator charges, Battlefield/building spell efficiency, Fish/Cooking/Soul-shop potions all matter","Demon trophies give 4 extra bonus demons; the two Temple trophies hugely cut required stats","Target before the final push: Mana cap 5e11-1e12, Reincarnation bonus 2M-4M, Spirit cap 500K-1M, then 60-80K perm Off/Def bonus from 2 charges","Use at least 4 charges (reincarnation first)"],"tips":["About 6 hours without the Pro Temple Trophy; going 96 to 99 temples cuts required stats 25x, so 3-4 hours with it."]},{"unlock":"Complete Learn To Walk Again 1","goal":"Clear stage 365 under the same restrictions","rewards":["Unlocks Synergy page 2"],"recs":["Synergy page 1 at least 1k each (soft cap) first","Get Phoenix (x10 reinc) from page 1 perks before starting","With Phoenix: 4-7 charges, spirit cap 300k-750k, 1e13-1e14 mana cap, Off/Def generator ~250k% + ~90k% charges, ~40m% reincarnation bonus, Off/Def synergy ~600% - about 2.5 hours","Without Phoenix: ~6-8 hours; 1-2m spirit cap, 1e14+ mana cap, Off/Def generator ~350k%, alchemy spell bonus 200-300%+, z16+z17 gear, reincarnation 10-20m%"],"tips":[]},{"unlock":"Complete Learn To Walk Again 2","goal":"Clear stage 380 under the same restrictions","rewards":["Unlocks Synergy page 3"],"recs":["All relevant synergy rows 1000+ points (pages 1 and 2); Off/Def synergy at least 20k points","7+ charges (reinc x3, Mana Refill, Offense, Defense; Gold and Dungeon Damage optional)"],"tips":["ETA 16-24 hours."]}]},"14":{"name":"Hardest Challenge Ever","comps":[{"unlock":"Beat Stage 670","goal":"Clear stage 150 with Demons, Adventure Equipment, Crafting, Cooking, Plaza, Slimes, Gen V2, Classes and more restricted, and Real-Estate-2 town prices","rewards":["Unlocks the fifth Boss, Terra Scraper","Reduces Arena Nuke cost by 7.5% (per completion)","Unlocks Hardest Challenge Ever 2"],"recs":["Save 12h of Mana, Reward (Exp+Gold) and M.E.D. potions (or spare Souls); keep 24h potions for part 2","Set Auto Spirit to 0 in Settings before starting (no Gathering)","Only reincarnation contributors available: Highest Stage and Mana Spent on Conjuring (Meditation and Demon Essence stay 0)"],"tips":["Loop: potions + low spells to climb, then max conjurations (disable auto-conjure until mana is full, split mana evenly offense/defense in one spell each), Stage priority AutoQ, then re-enable auto-conjure; enable only Off/Def, Mana Refill/Power, Gold/Exp, Essence dungeons and only House, Cottage, School, Temple, Sanctuary, Brothel, Enchanter, Tailor, Altar in town; spend Exp on Mana Refill and %-Unique Mana boosts; reincarnate and repeat to 100%+ bonus until stage 120-130 then clear. The wiki notes you are not really expected to finish it on the first try."]},{"unlock":"Beat Stage 670 and Hardest Challenge Ever 1","goal":"Clear stage 170 under the same restrictions","rewards":["Unlocks Synergy V2","Reduces Arena Nuke cost by 7.5% (per completion)"],"recs":["At least several thousand Auto Quests saved up","Max Cheaper Shadows (Arena shop); Newbie & Pro Auto Quest trophies, maxed Auto Quest timer / Quest Token / 2 Auto Quest timers (Soul Shop)","Baby Demons into Synergy Energy (900% baby xp from perma cooking incl. 2 trophies)"],"tips":["Same strategy as part 1 with 20 more zones: 2-4 days. Get Mana Refill/Power up early then focus Off/Def; ~33m mana lets you conjure an extra Dabra level; burn Auto Quests for gold/exp multiples."]}]}};
+const chEsc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+let chOpen = {};
+function chDetailHtml(num){
+  const comps = chData[num].comps;
+  const cur = Math.min(comps.length, chCompletionCounts[num]||0);
+  return comps.map((c,i)=>{
+    const status = i<cur ? '✓ done' : (i===cur ? '▶ next' : '○ locked');
+    const color = i<cur ? 'var(--good,#5ec27a)' : (i===cur ? 'var(--accent2)' : 'var(--sub)');
+    const list = (arr)=> arr.length ? '<ul style="margin:4px 0 8px 18px;padding:0;">'+arr.map(x=>`<li>${chEsc(x)}</li>`).join('')+'</ul>' : '';
+    return `<div style="border-left:3px solid ${color};padding:4px 10px;margin:8px 0;">
+      <div style="font-weight:600;color:${color};">${chEsc(chData[num].name)} ${i+1} / ${comps.length} &nbsp;—&nbsp; ${status}</div>
+      <div><b>Unlock:</b> ${chEsc(c.unlock||'—')}</div>
+      <div><b>Goal:</b> ${chEsc(c.goal||'—')}</div>
+      <div><b>Rewards:</b>${list(c.rewards)}</div>
+      ${c.recs.length ? `<div><b>Recommended before starting:</b>${list(c.recs)}</div>` : ''}
+      ${c.tips.length ? `<details><summary style="cursor:pointer;color:var(--sub);">Tips &amp; walkthrough</summary>${list(c.tips)}</details>` : ''}
+    </div>`;
+  }).join('');
+}
+function chNextText(num){
+  const comps = chData[num].comps;
+  const cur = Math.min(comps.length, chCompletionCounts[num]||0);
+  return cur>=comps.length ? '<span style="color:var(--good,#5ec27a);">All done</span>' : `${comps.length ? '#'+(cur+1)+': ' : ''}${chEsc(comps[cur].goal)}`;
+}
 function chRenderTable(){
-  const rows = chChallenges.map(([num,name,desc])=>
-    `<tr><td>${num}</td><td>${name}</td><td style="font-size:0.85em;color:var(--sub);">${desc}</td><td><input type="number" id="chN_${num}" value="0" min="0" step="1" style="width:70px;"></td></tr>`
-  ).join('');
-  document.getElementById('chTable').innerHTML = '<tr><th>#</th><th>Name</th><th>Prerequisite (confirmed from the DLL)</th><th>Completions</th></tr>' + rows;
+  const rows = chChallenges.map(([num,name,desc])=>{
+    const N = chData[num].comps.length;
+    const cur = Math.min(N, chCompletionCounts[num]||0);
+    chCompletionCounts[num] = cur;
+    const opts = Array.from({length:N+1},(_,i)=>`<option value="${i}" ${i===cur?'selected':''}>${i} / ${N}</option>`).join('');
+    return `<tr><td>${num}</td><td>${name}</td><td style="font-size:0.85em;color:var(--sub);">${desc}</td><td><select id="chN_${num}">${opts}</select></td><td id="chNext_${num}" style="font-size:0.85em;">${chNextText(num)}</td><td><button type="button" id="chBtn_${num}">${chOpen[num]?'Hide':'Details'}</button></td></tr>
+    <tr id="chDet_${num}" style="display:${chOpen[num]?'table-row':'none'};"><td colspan="6" id="chDetBody_${num}" style="font-size:0.85em;">${chOpen[num]?chDetailHtml(num):''}</td></tr>`;
+  }).join('');
+  document.getElementById('chTable').innerHTML = '<tr><th>#</th><th>Name</th><th>Engine prerequisite (from the game code)</th><th>Completions</th><th>Next goal</th><th></th></tr>' + rows;
   chChallenges.forEach(([num])=>{
-    document.getElementById('chN_'+num).addEventListener('input', (e)=>{
-      chCompletionCounts[num] = parseFloat(e.target.value) || 0;
+    document.getElementById('chN_'+num).addEventListener('change', (e)=>{
+      chCompletionCounts[num] = parseInt(e.target.value) || 0;
+      document.getElementById('chNext_'+num).innerHTML = chNextText(num);
+      if (chOpen[num]) document.getElementById('chDetBody_'+num).innerHTML = chDetailHtml(num);
       chRecalcTotal();
+      if (typeof chReadyRender==='function') chReadyRender();
+    });
+    document.getElementById('chBtn_'+num).addEventListener('click', ()=>{
+      chOpen[num] = !chOpen[num];
+      document.getElementById('chDet_'+num).style.display = chOpen[num] ? 'table-row' : 'none';
+      document.getElementById('chDetBody_'+num).innerHTML = chOpen[num] ? chDetailHtml(num) : '';
+      document.getElementById('chBtn_'+num).textContent = chOpen[num] ? 'Hide' : 'Details';
     });
   });
 }
@@ -2468,19 +2630,121 @@ document.getElementById('chCompletions').addEventListener('input', chApplyBonus)
 chRenderTable();
 chApplyBonus();
 
+// ---- Challenge Readiness (screen of wiki-recommended stats vs your numbers) ----
+const chNameToNum = {'first step':1,'inferno':2,'demons master':3,'demon master':3,'no conjuring':4,'blade storm':5,'time loop':6,'farmer life':7,'in spiritus':8,'air elemental':9,'opm':10,'o p m':10,'no reincarnation':11,'real estate':12,'learn to walk again':13,'ltwa':13,'hardest challenge ever':14};
+function chParseNum(tok){
+  if (tok==null) return null;
+  let t = String(tok).trim().toLowerCase().replace(/,/g,'').replace(/\s+/g,'');
+  let m = t.match(/^([\d.]+)e(\d+)$/); if (m) return parseFloat(m[1])*Math.pow(10,parseInt(m[2]));
+  m = t.match(/^([\d.]+)(k|mil|million|m|b|t|qa|qi)?$/);
+  if (!m) return null;
+  const mult = {'':1,'k':1e3,'m':1e6,'mil':1e6,'million':1e6,'b':1e9,'t':1e12,'qa':1e15,'qi':1e18}[m[2]||''];
+  const v = parseFloat(m[1]); return isNaN(v) ? null : v*mult;
+}
+function chRangeLow(txt){ // "22-26k" -> 22k ; "5800" ; "75-100k" -> 75k
+  const m = String(txt).trim().match(/^([\d.,]+)\s*([a-z]*)\s*[-–\/]\s*([\d.,]+)\s*([a-z]*)$/i);
+  if (m){ const suf = m[4] || m[2]; return chParseNum(m[1]+(m[2]||suf)); }
+  return chParseNum(String(txt).trim());
+}
+function chPlayer(){
+  const g = id => parseFloat(document.getElementById(id).value)||0;
+  return {stage:g('chpStage'), manaCap:g('chpManaCap'), refill:g('chpRefill'), power:g('chpPower'), reinc:g('chpReinc')};
+}
+function chEvalStage(n, P){ return {need:n, have:P.stage, ok:P.stage>=n}; }
+function chReadiness(num){
+  const comps = chData[num].comps; const cur = chCompletionCounts[num]||0;
+  if (cur>=comps.length) return {done:true};
+  const c = comps[cur]; const P = chPlayer();
+  const gates=[], checks=[], manual=[];
+  // unlock gate
+  const u = c.unlock||'';
+  let m;
+  if ((m = u.match(/(?:beat|reach)?\s*stage\s*(\d+)/i)) && !/complete/i.test(u)){ const r=chEvalStage(+m[1],P); gates.push({label:`Unlock: stage ${m[1]}`,...r}); }
+  const cm = u.match(/Complete\s+(.+?)\s+(\d)\b/i);
+  if (cm){ const k = chNameToNum[cm[1].toLowerCase().trim()]; if (k){ const have = chCompletionCounts[k]||0; gates.push({label:`Unlock: ${cm[1]} ${cm[2]} done`,need:+cm[2],have,ok:have>=+cm[2]}); } }
+  const rbu = u.match(/([\d.,]+)\s*(million|mil|m|k)?\s*reincarnation bonus/i);
+  if (rbu){ const n = chParseNum(rbu[1]+(rbu[2]||'')); if (n!=null){ gates.push({label:`Unlock: ${rbu[1]}${rbu[2]?' '+rbu[2]:''} reincarnation bonus %`,need:n,have:P.reinc,ok:P.reinc>=n}); } }
+  let unlockUnknown = false;
+  if (!gates.length && u){ manual.push('Unlock: '+u); unlockUnknown = true; }
+  // goal stage
+  const gs = (c.goal||'').match(/(?:clear|beat|reach)\s+stage\s*(\d+)/i);
+  if (gs){ const n=+gs[1]; checks.push({label:`Highest stage ≥ goal stage ${n} (you have reached it before)`,need:n,have:P.stage,ok:P.stage>=n}); }
+  (c.recs||[]).forEach(line=>{
+    let handled=false;
+    const br = line.match(/Base\s*Mana\s*refill\s*:?\s*([\d.,\s\-–kKmM]+?)\s*\/\s*Base\s*mana\s*power\s*:?\s*([\d.,\s\-–kKmM]+)/i);
+    if (br){ const r=chRangeLow(br[1]), p=chRangeLow(br[2]);
+      if (r!=null) checks.push({label:'Exp Shop base Mana Refill',need:r,have:P.refill,ok:P.refill>=r});
+      if (p!=null) checks.push({label:'Exp Shop base Mana Power',need:p,have:P.power,ok:P.power>=p});
+      handled = (r!=null||p!=null); }
+    if (!handled){
+      const st = line.match(/^(?:reach|clear|beat)?\s*(?:level\s*)?stage\s*(\d+)(?:\s*[-–]\s*\d+)?\s*(?:outside.*)?$/i) || line.match(/^(?:reach|clear)\s+(?:level\s+)?stage\s*(\d+)/i);
+      if (st){ const n=+st[1]; checks.push({label:`Reach stage ${n}`,need:n,have:P.stage,ok:P.stage>=n}); handled=true; }
+    }
+    if (!handled){
+      const cc = line.match(/^(?:Complete|Clear)\s*(.+?)\s*(\d)\s*(?:challenge)?\s*$/i) || line.match(/^(.+?)\s+(\d)\s+completed$/i);
+      if (cc){ const k=chNameToNum[cc[1].toLowerCase().trim()]; if (k){ const have=chCompletionCounts[k]||0; checks.push({label:`${cc[1].trim()} ${cc[2]} completed`,need:+cc[2],have,ok:have>=+cc[2]}); handled=true; } }
+    }
+    if (!handled){
+      const mc = line.match(/([\d.,]+\s*(?:k|m|mil|b|t|qa|qi)?|[\d.]+e\d+)\s*mana\s*cap/i);
+      if (mc && /^(?:base stats|[\d])/i.test(line.trim())){ const n=chRangeLow(mc[1]); if (n!=null){ checks.push({label:'Mana cap',need:n,have:P.manaCap,ok:P.manaCap>=n}); handled=true; } }
+    }
+    if (!handled){
+      const rb = line.match(/reincarnation bonus[^%\d]{0,40}([\d,.]+)\s*%/i) || line.match(/([\d,.]+)\s*%\s*reincarnation bonus/i);
+      if (rb && /outside|at least|reach|^reincarnation bonus/i.test(line)){ const n=chParseNum(rb[1]); if (n!=null){ checks.push({label:'Reincarnation bonus %',need:n,have:P.reinc,ok:P.reinc>=n}); handled=true; } }
+    }
+    if (!handled) manual.push(line);
+  });
+  const met = checks.filter(x=>x.ok).length;
+  const gatesOk = gates.every(x=>x.ok);
+  return {done:false,c,gates,checks,manual,met,total:checks.length,gatesOk,unlockUnknown,frac:checks.length?met/checks.length:null};
+}
+function chReadyRender(){
+  const rows = chChallenges.map(([num,name])=>({num,name,r:chReadiness(num)}));
+  const rank = x => x.r.done ? -2 : (!x.r.gatesOk ? -1 : (x.r.frac==null ? 0.5 : x.r.frac));
+  rows.sort((a,b)=> rank(b)-rank(a));
+  const fmt = n => (typeof fmtBig==='function') ? fmtBig(n) : String(n);
+  const html = rows.map(({num,name,r})=>{
+    if (r.done) return `<tr><td>${name}</td><td colspan="3" style="color:var(--good,#5ec27a);">All ${chData[num].comps.length} completions done</td></tr>`;
+    const idx = (chCompletionCounts[num]||0)+1;
+    let status;
+    if (!r.gatesOk) status = `<span style="color:var(--warn);">Locked</span>`;
+    else if (r.frac==null) status = `<span style="color:var(--sub);">Unlocked — no measurable recommendations</span>`;
+    else status = `<b style="color:${r.frac>=1?'var(--good,#5ec27a)':r.frac>=0.6?'var(--accent2)':'var(--warn)'};">${r.met}/${r.total} recommendations met</b>` + (r.unlockUnknown ? `<div style="font-size:0.8em;color:var(--warn);">unlock condition can't be measured — check it in game</div>` : '');
+    const det = [...r.gates.map(x=>({...x,gate:true})), ...r.checks].map(x=>`<div style="color:${x.ok?'var(--good,#5ec27a)':'var(--warn)'};">${x.ok?'✓':'✗'} ${chEsc(x.label)} — need ${fmt(x.need)}, you ${fmt(x.have)}</div>`).join('');
+    const man = r.manual.length ? `<details><summary style="cursor:pointer;color:var(--sub);">${r.manual.length} to check yourself</summary>${r.manual.map(l=>`<div style="color:var(--sub);">• ${chEsc(l)}</div>`).join('')}</details>` : '';
+    return `<tr><td>${name} ${idx}</td><td style="font-size:0.85em;">${chEsc(r.c.goal)}</td><td>${status}</td><td style="font-size:0.8em;">${det}${man}</td></tr>`;
+  }).join('');
+  document.getElementById('chReadyTable').innerHTML = '<tr><th>Next completion</th><th>Goal</th><th>Readiness</th><th>Details</th></tr>'+html;
+}
+['chpStage','chpManaCap','chpRefill','chpPower','chpReinc'].forEach(id=>document.getElementById(id).addEventListener('input', chReadyRender));
+chReadyRender();
+
+// Infinite Challenges. Wiki (4 pages provided 2026-10-15): reward = stat x 1.1^completions (compounding), and while
+// INSIDE the challenge the same stat is raised to the power 0.99^completions (compounding penalty). Deep And Dark
+// and Army General had no wiki page provided - their reward wording below is from the DLL text only.
 const ifChallenges = [
-  ['Infinite First Step','Reach Stage ≥ 620 + completions×2','+10% Offense & Defense per completion (text confirmed; not wired into the Attack/Defense formula below — the field it writes wasn\'t found in MinionMain.Update)'],
-  ['The Hangover','Town House building level ≥ 500 + completions×2','+10% Gold per completion'],
-  ['Am I Potter?','Abracadabra spell level ≥ 550 + completions×2','+10% Mana Refill per completion'],
-  ['Unstable Experience','Demonic Essence ≥ 1e150 × 10^completions','+10% Essence generated per completion'],
-  ['Deep And Dark','Dungeon Attack Floor ≥ 700 + completions×2','+10% Dungeon Damage per completion'],
-  ['Army General','Battlefield level ≥ 2500 + completions×10','+10% Demonic Essence gained per completion']
+  ['Infinite First Step','Beat Stage 650 to unlock; goal: reach Stage 620 + 2×completions','Offense & Defense × 1.1^completions (inside the challenge: Offense & Defense ^ 0.99^completions). Wiki: run it as soon as unlocked, 5+ clears are easy early. Not folded into the Attack/Defense calculator - the game field it writes was not located in MinionMain.Update.', 'ifN0'],
+  ['The Hangover','Beat Stage 675 to unlock; goal: House level ≥ 500 + 2×completions','Gold × 1.1^completions (inside: Gold earning ^ 0.99^completions)','ifN1'],
+  ['Am I Potter?','Beat Stage 700 to unlock; goal: Abracadabra level ≥ 550 + 2×completions','Mana Refill × 1.1^completions (inside: Abraca cost ^ 0.99^completions)','ifN2'],
+  ['Unstable Experience','Beat Stage 725 to unlock; goal: at least 1e150 Essence created (DLL: 1e150 × 10^completions)','Essence × 1.1^completions (inside: Essence created ^ 0.99^completions)','ifN3'],
+  ['Deep And Dark','Dungeon Attack Floor ≥ 700 + 2×completions (DLL; no wiki page provided)','+10% Dungeon Damage per completion (DLL text; compounding vs flat not confirmed)','ifN4'],
+  ['Army General','Battlefield level ≥ 2500 + 10×completions (DLL; no wiki page provided)','+10% Demonic Essence gained per completion (DLL text; compounding vs flat not confirmed)','ifN5']
 ];
+let ifCounts = {};
 function ifRenderTable(){
-  const rows = ifChallenges.map(([name,prereq,reward])=>
-    `<tr><td>${name}</td><td style="font-size:0.85em;color:var(--sub);">${prereq}</td><td style="font-size:0.85em;">${reward}</td></tr>`
-  ).join('');
-  document.getElementById('ifTable').innerHTML = '<tr><th>Name</th><th>Unlock condition</th><th>Reward (per completion)</th></tr>' + rows;
+  const rows = ifChallenges.map(([name,prereq,reward,id],i)=>{
+    const n = ifCounts[id]||0;
+    const mult = Math.pow(1.1,n), pen = Math.pow(0.99,n);
+    const live = i<4 ? `×${mult.toFixed(3)} reward &nbsp;/&nbsp; ^${pen.toFixed(3)} penalty inside` : '—';
+    return `<tr><td>${name}</td><td style="font-size:0.85em;color:var(--sub);">${prereq}</td><td style="font-size:0.85em;">${reward}</td><td><input type="number" id="${id}" value="${n}" min="0" step="1" style="width:60px;"></td><td id="${id}_out" style="font-size:0.85em;">${live}</td></tr>`;
+  }).join('');
+  document.getElementById('ifTable').innerHTML = '<tr><th>Name</th><th>Unlock / goal</th><th>Reward</th><th>Clears</th><th>Effect now</th></tr>' + rows;
+  ifChallenges.forEach(([name,p,r,id],i)=>{
+    document.getElementById(id).addEventListener('input', (e)=>{
+      const n = Math.max(0, parseInt(e.target.value)||0); ifCounts[id]=n;
+      if (i<4) document.getElementById(id+'_out').innerHTML = `×${Math.pow(1.1,n).toFixed(3)} reward &nbsp;/&nbsp; ^${Math.pow(0.99,n).toFixed(3)} penalty inside`;
+    });
+  });
 }
 ifRenderTable();
 
@@ -2505,6 +2769,8 @@ function tadRecalc(){
   const atk = (25 + pullDmg + (level * (10*stage/200))) * trophyMult * levelMult * (1+mlAtk) * challengeMult * (1 + ppAtk/1000) * arenaMult * tributeMult * soul;
   const def = (10 + pullDef + (level * (6*stage/200))) * trophyMult * levelMult * (1+mlDef) * challengeMult * (1 + ppDef/1000) * arenaMult * tributeMult * soul;
   const hp = def * 10;
+  window.tadLastAtk = atk; window.tadLastDef = def;
+  if (typeof wbSyncFromTad === 'function') wbSyncFromTad();
 
   const fmt = n => n.toLocaleString('en-US', {maximumFractionDigits: n<1000?3:0});
   document.getElementById('tadOut').textContent = `${fmt(atk)}  /  ${fmt(def)}  /  ${fmt(hp)}`;
@@ -2539,6 +2805,384 @@ function parseStatNum(s){
   document.getElementById(id).addEventListener('input', tadRecalc);
 });
 tadRecalc();
+
+// ---- Tribute Shop (confirmed from TributeShop.Start + 21 Click* methods; currency = Pure Comos) ----
+const tsItems = [
+  ['TSDailyTrophy','Trophy Bonus','+2% Trophy Points earned daily',50,2500,1.5,'add',2],
+  ['TSAdvItems','Adventure Items','+1% Bonuses from bagged Inventory items (base 10%)',5,50000,1.5,'add',1],
+  ['TSAlchemyVats','Alchemy Vats','×1.05 Vats bonus, compounding',100,2500,1.5,'compound',5],
+  ['TSDemonsBoost','Demons Boost','+500% Demons Boost (not Boost All)',20,25000,1.5,'add',500],
+  ['TSCheaperShadow','Cheaper Shadow','÷8 Shadow price each purchase (+3 Shadow/level)',50,25000,2.5,'text',null],
+  ['TSDropRarity','Drop & Rarity','+5% Drop & Rarity',20,25000,1.5,'add',5],
+  ['TSMinionStats','Minion Atk & Def','+2.5% Minion Attack & Defense',10,150000,1.5,'add',2.5],
+  ['TSTrainingExp','Training Exp','×1.05 Training Exp, compounding',100,150000,1.5,'compound',5],
+  ['TSQuestToken','Quest Token','+1 Quest Token/Quest (+1,000 daily purchase cap)',5,150000,12.0,'text',null],
+  ['TSSanctuaryLevel','Sanctuary Level','+1 Sanctuary Max Level',4,1000000,15.0,'text',null],
+  ['TSSpecialCooking','Special Cooking','+10% Special Cooking Bonus (not the Perma)',40,1500000,2.25,'add',10],
+  ['TSClassesExpReduction','Classes Exp Reduction','−3% Classes Exp Required',33,2500000,1.7,'add',-3],
+  ['TSSlimeDRReduction','Slime DR Reduction','~−2% Slime leveling penalty',24,50000000,1.85,'text',null],
+  ['TSArenaNuke','Arena Nuke','−1% Arena Nuke cost',10,50000000,2.1,'add',-1],
+  ['TSDumpBumpReset','Dump Bump Reset','+0.2% Dump Bump Reset Bonus',60,50000000,1.6,'add',0.2],
+  ['TSSlimeFeedFishDR','Dump Temp Bonus','Keep 0.01% of Dump Perma bonus as Temp Bonus',25,100000000,1.6,'text',null],
+  ['TSBabyDemonRate','Baby Demon Rate','−10 Demons required per Baby Demon',25,100000000,1.75,'text',null],
+  ['TSArenaSkillExp','Arena Skill Exp','+10% Arena Skill exp gain',20,100000000,1.65,'add',10],
+  ['TSGeneratorV2Bonus','Generator V2 Bonus','+4% more per Gen V2 charge release',50,250000000,2.15,'add',4],
+  ['TSClassesTalentReset','Talent Reset Timer','−1h Classes Talent reset timer',24,250000000,1.5,'text',null],
+  ['TSMuseumBonus','Museum Bonus','+1% Museum Bonus',5,500000000,50.0,'add',1]
+];
+let tsLevels = {};
+tsItems.forEach(([key])=> tsLevels[key]=0);
+function tsCost(base,mult,lvl){ return Math.round(base * Math.pow(mult, lvl)); }
+function tsEffectAt(item, lvl){
+  const [key,name,desc,max,base,mult,kind,per] = item;
+  if (kind==='add') return (per*lvl);
+  if (kind==='compound') return ((Math.pow(1+per/100, lvl)-1)*100);
+  return null;
+}
+function tsRenderTable(){
+  const rows = tsItems.map(item=>{
+    const [key,name,desc,max,base,mult] = item;
+    const lvl = tsLevels[key];
+    const eff = tsEffectAt(item, lvl);
+    const effTxt = eff===null ? `${lvl} / ${max} levels` : `${eff>=0?'+':''}${eff.toFixed(2)}%`;
+    const nextCost = lvl<max ? tsCost(base,mult,lvl) : 0;
+    return `<tr><td>${name}</td><td style="font-size:0.85em;color:var(--sub);">${desc}</td><td><input type="number" id="tsLvl_${key}" value="${lvl}" min="0" max="${max}" step="1" style="width:70px;"> / ${max}</td><td id="tsEff_${key}">${effTxt}</td><td id="tsCost_${key}">${lvl<max ? nextCost.toLocaleString('en-US') : 'MAX'}</td></tr>`;
+  }).join('');
+  document.getElementById('tsTable').innerHTML = '<tr><th>Item</th><th>Effect</th><th>Level</th><th>Current bonus</th><th>Cost of next level (Pure Comos)</th></tr>' + rows;
+  tsItems.forEach(([key,,,max])=>{
+    document.getElementById('tsLvl_'+key).addEventListener('input', (e)=>{
+      let v = parseInt(e.target.value) || 0;
+      if (v<0) v=0; if (v>max) v=max;
+      tsLevels[key]=v;
+      tsUpdateRow(key);
+      tsSyncMaster();
+    });
+  });
+  tsSyncMaster();
+}
+function tsUpdateRow(key){
+  const item = tsItems.find(it=>it[0]===key);
+  const [,,,max,base,mult] = item;
+  const lvl = tsLevels[key];
+  const eff = tsEffectAt(item, lvl);
+  document.getElementById('tsEff_'+key).textContent = eff===null ? `${lvl} / ${max} levels` : `${eff>=0?'+':''}${eff.toFixed(2)}%`;
+  document.getElementById('tsCost_'+key).textContent = lvl<max ? tsCost(base,mult,lvl).toLocaleString('en-US') : 'MAX';
+}
+function tsSyncMaster(){
+  const t = document.getElementById('tadTribute');
+  if (t) t.value = tsLevels['TSMinionStats'];
+  const bdSyn = document.getElementById('bdSynRate');
+  if (bdSyn){ bdSyn.value = Math.min(250, 10*(tsLevels['TSBabyDemonRate']||0)); if (typeof recalcBD === 'function') recalcBD(); }
+  if (typeof tadRecalc === 'function') tadRecalc();
+  if (typeof gv2Sync === 'function') gv2Sync();
+}
+tsRenderTable();
+
+const tsPage3Items = [
+  'Comos Infused Potions','Grilled Comos','Romos Divergence','Atomos Divergence','Pomos Divergence',
+  'Arena Convergence','Mastery Convergence','Necromantic Convergence','Gravity Convergence'
+];
+function tsRenderPage3(){
+  const rows = tsPage3Items.map(name=> `<tr><td>${name}</td></tr>`).join('');
+  document.getElementById('tsPage3Table').innerHTML = '<tr><th>Name</th></tr>' + rows;
+}
+tsRenderPage3();
+
+// ---- Arena Shop (confirmed from ArenaShop.Click* + ClickPurchase) ----
+// kind: 'lin' cost = A*(lvl+1); 'exp' cost = A*B^lvl; 'adv' triangular; 'skill' ((A+lvl*A)*1.03^lvl)/costReduction
+// eff: [per-level amount, unit text, kind] where kind 'add' -> per*lvl ; 'mult' -> (b^lvl-1)*100 ; null -> text only
+const arItems = [
+  ['ATMinionStats','Minion Atk & Def','+2.5% Minion Attack & Defense (feeds the Attack/Defense calculator)',10,'lin',250,0,[2.5,'%','add']],
+  ['ATDailySoulCap','Daily Soul Cap','+50 daily Soul cap (base 10,000)',100,'lin',10,0,[50,'','add']],
+  ['ATDailyTrophy','Trophy','+2% Trophy Points earned daily',50,'lin',50,0,[2,'%','add']],
+  ['ATAdvItems','Adventure Items','+1% bonuses from bagged Inventory items (base 10%)',10,'adv',50,0,[1,'%','add']],
+  ['ATAlchemyVats','Alchemy Vats','+2% Vats',100,'exp',50,1.1,[2,'%','add']],
+  ['ATDemonsBoost','Demons Boost','+100% Demons Boost (not Boost All)',20,'lin',150,0,[100,'%','add']],
+  ['ATCheaperShadow','Cheaper Shadow','Shadow price ÷2 per purchase (+1 Shadow/level)',40,'lin',100,0,null],
+  ['ATDropRarity','Drop & Rarity','+5% Drop & Rarity',50,'lin',100,0,[5,'%','add']],
+  ['ATSlimeDrop','Slime Drop Rate','+1% Slime drop rate (Z19+ only)',15,'lin',200,0,[1,'%','add']],
+  ['ATMuseumBonus','Museum Bonus','+1% Museum Bonus',10,'lin',500,0,[1,'%','add']],
+  ['ATAutofeeder','Autofeeder','Slime Autofeeder triggers 1% earlier',10,'lin',400,0,[1,'%','add']],
+  ['ATTrainingExp','Training Exp','+2.5% Training Exp',200,'lin',20,0,[2.5,'%','add']],
+  ['ATAutoQuestTimer','Auto Quest Timer','−10 s Auto Quest timer',15,'exp',50,1.5,[10,' s','add']],
+  ['ATQuestToken','Quest Token','+1 Quest Token per Quest (+1,000 daily purchase cap)',4,'exp',500,4,null],
+  ['ATArenaPoint','Arena Point','+1 Arena Point (Monster Pit), +5 (Champion Pit)',4,'exp',500,3,null],
+  ['ATSanctuaryLevel','Sanctuary Level Max','+1 Sanctuary max level',45,'lin',200,0,[1,'','add']],
+  ['ATSpecialCooking','Special Cooking Bonus','+5% Special Cooking Bonus (not the Perma)',20,'lin',2000,0,[5,'%','add']],
+  ['ATWarriorDamage','Warrior Damage','×2 Warrior damage',2,'warr',5000,45000,null],
+  ['ATClassesExpReduction','Classes Exp Reduction','−5% Classes Exp required',19,'lin',3000,0,[-5,'%','add']],
+  ['ATSlimeDRReduction','Slime Leveling Penalty','~−1% Slime leveling penalty',25,'lin',5000,0,null],
+  ['ATArenaNukeReduction','Arena Nuke Reduction','−1% Arena Nuke cost',15,'lin',7500,0,[-1,'%','add']],
+  ['ATDumpBumpResetBonus','Dump Bump Reset Bonus','+0.1% Dump Bump Reset Bonus',20,'lin',10000,0,[0.1,'%','add']],
+  ['ATWarriorMaxHP','Warrior Max HP','+5 Warrior Max HP',10,'lin',2500,0,[5,'','add']],
+  ['ATDSMaxTimeleft','Dark Shadow Timeleft','+5 Dark Shadow max time left',10,'lin',10000,0,[5,'','add']],
+  ['ATDumpBumpResetTimer','Dump Bump Reset Timer','−1 hour Dump Bump reset timer',24,'lin',15000,0,[-1,' h','add']],
+  ['ATRefinedBonus','Synergy V2 Refined','+2% Synergy V2 Refined resource',25,'lin',25000,0,[2,'%','add']],
+  ['ATPureBonus','Synergy V2 Pure','+2% Synergy V2 Pure resource',25,'lin',25000,0,[2,'%','add']],
+  ['ATMechExpBonus','Synergy V2 Mech Exp','+2% Synergy V2 Mech Exp gained',25,'lin',50000,0,[2,'%','add']],
+  ['ATOffDefLevel','Offense & Defense (hero)','×1.10 per level (compounding)',26,'skill',100,1.1,[1.1,'%','mult']],
+  ['ATManaRefLevel','Mana Refill (hero)','×1.025 per level',98,'skill',500,1.025,[1.025,'%','mult']],
+  ['ATManaPowLevel','Mana Power (hero)','×1.05 per level',50,'skill',250,1.05,[1.05,'%','mult']],
+  ['ATMeditationLevel','Meditation Exp (hero)','×1.10 per level',26,'skill',100,1.1,[1.1,'%','mult']],
+  ['ATGoldLevel','Gold (hero)','×1.05 per level',50,'skill',250,1.05,[1.05,'%','mult']],
+  ['ATExpLevel','Experience (hero)','×1.025 per level',98,'skill',500,1.025,[1.025,'%','mult']],
+  ['ATEssenceLevel','Essence (hero)','×1.025 per level',98,'skill',1000,1.025,[1.025,'%','mult']],
+  ['ATDungeonDmgLevel','Dungeon Damage (hero)','×1.05 per level',50,'skill',100,1.05,[1.05,'%','mult']],
+  ['ATPetFoodLevel','Pet Food (hero)','×1.05 per level',50,'skill',250,1.05,[1.05,'%','mult']],
+  ['ATPetPointLevel','Pet Point (hero)','×1.025 per level',98,'skill',250,1.025,[1.025,'%','mult']],
+  ['ATHellManaLevel','Hell Mana (hero)','×1.05 per level',50,'skill',250,1.05,[1.05,'%','mult']],
+  ['ATHellSpiritLevel','Hell Spirit (hero)','×1.025 per level',98,'skill',250,1.025,[1.025,'%','mult']],
+  ['ATFishingBonusesLevel','Fishing Bonuses','One-time (5,000 Tokens): Off/Def bonus = (1.05^(Fishing level − 350) − 1) × 5, needs Fishing 351+',1,'once',5000,0,null]
+];
+let arLevels = {};
+arItems.forEach(it=> arLevels[it[0]] = 0);
+function arCostReduction(){ const v = parseFloat(document.getElementById('arConv').value)||0; return Math.max(1, 1+v); }
+function arCost(it, lvl){
+  const [key,name,desc,max,kind,A,B] = it;
+  switch(kind){
+    case 'lin': return A*(lvl+1);
+    case 'exp': return key==='ATAlchemyVats' ? Math.round(A*Math.pow(B,lvl)) : A*Math.pow(B,lvl);
+    case 'adv': return A*(lvl+1)*(lvl+2)/2;
+    case 'warr': return A + lvl*B;
+    case 'skill': return ((A+lvl*A)*Math.pow(1.03,lvl))/arCostReduction();
+    case 'once': return A;
+  }
+  return 0;
+}
+function arEffTxt(it, lvl){
+  const eff = it[7];
+  if (!eff) return `${lvl} / ${it[3]}`;
+  const [per,unit,k] = eff;
+  if (k==='add'){ const v = per*lvl; return `${v>=0?'+':''}${Math.round(v*1000)/1000}${unit}`; }
+  if (k==='mult'){ return `+${((Math.pow(per,lvl)-1)*100).toFixed(2)}%`; }
+  return '';
+}
+function arRemaining(it){
+  const lvl = arLevels[it[0]], max = it[3]; let t = 0;
+  for (let l=lvl; l<max; l++) t += arCost(it,l);
+  return t;
+}
+function arRowHtml(it){
+  const [key,name,desc,max] = it; const lvl = arLevels[key];
+  const next = lvl<max ? Math.round(arCost(it,lvl)).toLocaleString('en-US') : 'MAX';
+  return `<tr><td>${name}</td><td style="font-size:0.85em;color:var(--sub);">${desc}</td><td><input type="number" id="arLvl_${key}" value="${lvl}" min="0" max="${max}" step="1" style="width:70px;"> / ${max}</td><td id="arEff_${key}">${arEffTxt(it,lvl)}</td><td id="arCost_${key}">${next}</td><td id="arRem_${key}">${Math.round(arRemaining(it)).toLocaleString('en-US')}</td></tr>`;
+}
+function arUpdateRow(key){
+  const it = arItems.find(x=>x[0]===key); const lvl = arLevels[key];
+  document.getElementById('arEff_'+key).textContent = arEffTxt(it,lvl);
+  document.getElementById('arCost_'+key).textContent = lvl<it[3] ? Math.round(arCost(it,lvl)).toLocaleString('en-US') : 'MAX';
+  document.getElementById('arRem_'+key).textContent = Math.round(arRemaining(it)).toLocaleString('en-US');
+}
+function arSummary(){
+  const total = arItems.reduce((a,it)=>a+arRemaining(it),0);
+  const bal = parseFloat(document.getElementById('arTokens').value)||0;
+  document.getElementById('arSummary').innerHTML = `${fmtBig(total)} Tokens to max everything &nbsp;/&nbsp; ${fmtBig(Math.max(0,total-bal))} still to earn`;
+}
+function arSync(){
+  const t = document.getElementById('tadArena');
+  if (t) t.value = arLevels['ATMinionStats'];
+  if (typeof tadRecalc === 'function') tadRecalc();
+  arSummary();
+}
+function arRenderTable(){
+  document.getElementById('arTable').innerHTML = '<tr><th>Item</th><th>Effect</th><th>Level</th><th>Current bonus</th><th>Next cost</th><th>Cost to max</th></tr>' + arItems.map(arRowHtml).join('');
+  arItems.forEach(it=>{
+    document.getElementById('arLvl_'+it[0]).addEventListener('input', (e)=>{
+      let v = parseInt(e.target.value)||0; if (v<0) v=0; if (v>it[3]) v=it[3];
+      arLevels[it[0]] = v; arUpdateRow(it[0]); arSync();
+    });
+  });
+  arSync();
+}
+document.getElementById('arTokens').addEventListener('input', arSummary);
+document.getElementById('arConv').addEventListener('input', ()=>{ arItems.forEach(it=>arUpdateRow(it[0])); arSummary(); });
+arRenderTable();
+// Soul shop (Soul currency). Daily items reset daily.
+const arSoulItems = [
+  ['SoulDamageBoost','Damage Boost','+25% Warrior & Dark Shadow damage',2,250000],
+  ['SoulSkillsSpeed','Skills Exp','+25% Arena skills exp gained',2,250000],
+  ['SoulArenaReward','Arena Reward','+25% Arena Token reward',2,250000],
+  ['SoulDailyQuestToken','Quest Token (daily)','Instantly earn Quest Tokens (1,000 + 1,000 × (Arena + Tribute Quest Token levels))',1,10000],
+  ['SoulDailyAutoQuest','Auto Quest (daily)','Instantly earn 500 Auto Quests',2,5000]
+];
+let arSoulLevels = {};
+arSoulItems.forEach(it=> arSoulLevels[it[0]]=0);
+function arSoulRender(){
+  document.getElementById('arSoulTable').innerHTML = '<tr><th>Item</th><th>Effect</th><th>Bought</th><th>Cost each (Soul)</th></tr>' + arSoulItems.map(([k,n,d,m,c])=>`<tr><td>${n}</td><td style="font-size:0.85em;color:var(--sub);">${d}</td><td><input type="number" id="arS_${k}" value="${arSoulLevels[k]}" min="0" max="${m}" style="width:60px;"> / ${m}</td><td>${c.toLocaleString('en-US')}</td></tr>`).join('');
+  arSoulItems.forEach(([k,n,d,m])=>{ document.getElementById('arS_'+k).addEventListener('input',e=>{ let v=parseInt(e.target.value)||0; v=Math.max(0,Math.min(m,v)); arSoulLevels[k]=v; }); });
+}
+arSoulRender();
+
+// ---- Generator V2 ----
+const gv2Cats=[['Demons',380,1e10,0],['Conjuring',400,1e15,1],['Dungeon',415,1e20,3],['Generator',430,1e25,2],['Slime',450,1e30,4],['Alchemy',475,1e35,5]];
+let gv2Perm=[0,0,0,0,0,0];
+function gv2Num(id){const v=parseFloat(document.getElementById(id).value);return isFinite(v)?v:0;}
+function gv2Mult(){
+  return (1+gv2Num('gv2Mach'))*(1+gv2Num('gv2Trib')*0.04)*((1+gv2Num('gv2T15'))+gv2Num('gv2T35'))*(1+gv2Num('gv2Pull')/100);
+}
+function gv2Calc(){
+  const el=document.getElementById('gv2Table'); if(!el) return;
+  const stage=gv2Num('gv2Stage'), E=gv2Num('gv2Essence'), M=gv2Mult(), cur=gv2Num('gv2Cur');
+  const _g5=document.getElementById('alG5'); if(_g5 && typeof gv2Perm!=='undefined'){ _g5.value=gv2Perm[5]||0; if(typeof alCalc==='function') alCalc(); }
+  document.getElementById('gv2Mult').textContent='×'+M.toFixed(4);
+  let h='<tr><th>Category</th><th>Unlock</th><th>Log base</th><th>Current bonus</th><th>Gain if released now</th><th>Essence consumed</th><th>Essence for +1 / +2 / +5 %</th></tr>';
+  gv2Cats.forEach(c=>{
+    const [name,unl,base,idx]=c;
+    const ok=stage>=unl;
+    const lg=Math.log(E+1)/Math.log(base);
+    const gain=Math.floor(lg*M);
+    const used=Math.floor(lg)*base;
+    const need=g=>fmtBig(Math.pow(base,g/M)-1);
+    h+=`<tr style="${ok?'':'opacity:.5'}"><td>${name}</td><td>Stage ${unl}${ok?'':' (locked)'}</td><td>${fmtBig(base)}</td><td>${fmtBig(gv2Perm[idx]||0)}%</td><td>${ok&&cur>0?'+'+fmtBig(gain)+'%':(ok?'no charge':'—')}</td><td>${ok?fmtBig(used):'—'}</td><td>${need(1)} / ${need(2)} / ${need(5)}</td></tr>`;
+  });
+  el.innerHTML=h;
+}
+['gv2Stage','gv2Essence','gv2Cur','gv2Max','gv2Mach','gv2Trib','gv2T15','gv2T35','gv2Pull'].forEach(id=>{const e=document.getElementById(id); if(e) e.addEventListener('input',gv2Calc);});
+function gv2Sync(){const t=document.getElementById('gv2Trib'); if(t && typeof tsLevels!=='undefined') t.value=tsLevels['TSGeneratorV2Bonus']||0; gv2Calc();}
+
+// ---- World Boss ----
+function wbNum(id){const v=parseFloat(document.getElementById(id).value);return isFinite(v)?v:0;}
+function wbTime(sec){
+  if(!isFinite(sec)) return '∞ (no damage)';
+  if(sec<60) return sec.toFixed(1)+' s';
+  if(sec<3600) return (sec/60).toFixed(1)+' min';
+  if(sec<86400) return (sec/3600).toFixed(1)+' h';
+  return (sec/86400).toFixed(1)+' days';
+}
+function wbRecalc(){
+  const el=document.getElementById('wbTable'); if(!el) return;
+  const L=wbNum('wbLevel'), S=wbNum('wbStage'), A=wbNum('wbAtk'), D=wbNum('wbDef');
+  const pc=wbNum('wbCC')/100, mc=wbNum('wbCD')/100+1, pd=wbNum('wbDC')/100;
+  const war=wbNum('wbWar')+wbNum('wbDS');
+  const cd=Math.max(0,3600-wbNum('wbBT5')-wbNum('wbBT10'));
+  const u3=wbNum('wbU3'), c13=wbNum('wbC13'), c14=wbNum('wbC14'), if1=wbNum('wbIF1');
+  const critMul=1+pc*(mc-1), dblMul=1+pd;
+  const bosses=[
+    {n:'Dullahan', req:'Stage 30', ok:S>=30, hp:L<=100?L*1e5:1e7+(L-100)*2e5, stat:'Attack', base:A, mul:critMul*dblMul, rate:1},
+    {n:'Galg', req:'Stage 180, Level 101', ok:S>=180&&L>=101, hp:5e7+(L-100)*1e6, stat:'Defense', base:D, mul:critMul*dblMul, rate:2},
+    {n:'Kane', req:'Stage 350, Level 201, Soul Shop World Boss 3', ok:S>=350&&L>=201&&u3>0, hp:3e9+(L-200)*6e7, stat:'Attack (no double)', base:A, mul:critMul, rate:1},
+    {n:'Auburned', req:'Stage 470, Level 301, Learn To Walk Again x3', ok:S>=470&&L>=301&&c13>=3, hp:750000, stat:'Pet Level', base:L, mul:critMul*dblMul, rate:1},
+    {n:'Terra Scraper', req:'Stage 670, Level 401, Hardest Challenge Ever x1', ok:S>=670&&L>=401&&c14>=1, hp:5e6, stat:'Warrior + Dark Shadow levels', base:war, mul:1.2*1.05, rate:1},
+    {n:'Endavers', req:'Stage 800, Level 501, Infinite First Step x35', ok:S>=800&&L>=501&&if1>=35, hp:5e6, stat:'Highest Stage', base:S, mul:1, rate:1}
+  ];
+  let h='<tr><th>Boss</th><th>Unlock</th><th>HP</th><th>Hits with</th><th>Avg damage / second</th><th>Time to kill</th><th>Cooldown</th><th>Kills / day</th></tr>';
+  bosses.forEach(b=>{
+    const dps=b.base*b.mul*b.rate;
+    const ttk=dps>0?b.hp/dps:Infinity;
+    const cyc=ttk+cd;
+    h+=`<tr style="${b.ok?'':'opacity:.5'}"><td>${b.n}${b.ok?'':' (locked)'}</td><td>${b.req}</td><td>${fmtBig(Math.round(b.hp))}</td><td>${b.stat}</td><td>${fmtBig(dps)}</td><td>${wbTime(ttk)}</td><td>${wbTime(cd)}</td><td>${isFinite(cyc)?(86400/cyc).toFixed(2):'0'}</td></tr>`;
+  });
+  el.innerHTML=h;
+}
+['wbLevel','wbStage','wbAtk','wbDef','wbCC','wbCD','wbDC','wbWar','wbDS','wbBT5','wbBT10','wbU3','wbC13','wbC14','wbIF1'].forEach(id=>{const e=document.getElementById(id); if(e) e.addEventListener('input',wbRecalc);});
+function wbSyncFromTad(){
+  const set=(a,b)=>{const x=document.getElementById(a),y=document.getElementById(b); if(x&&y) x.value=y.value;};
+  set('wbLevel','tadPetLevel'); set('wbStage','tadPetStage');
+  if(window.tadLastAtk!==undefined){document.getElementById('wbAtk').value=Math.round(window.tadLastAtk); document.getElementById('wbDef').value=Math.round(window.tadLastDef);}
+  wbRecalc();
+}
+
+// ---- Alchemy Lab ----
+const alNames=["Drop Chance","Mana Refill","Mana Power","Gold Drop","Exp Gain","Meditation","Pet Food Income","Pet Point Income","Spirit Refill (Demons)","Spell Bonus","Perm Demons","Essence Gen.","Dungeon Damage","Monster Rarity","Gathering Exp","Gathering Speed","Gathering Logs","Gathering Ore","Gathering Gems","Gathering Res.","Hell Mana Refill","Mana Cap Rate","Battlefield Dmg.","Respawn Rate","Speed Bonus","Hell Spirit (Baby)","Slime Exp","Training Exp","Faster Mixing","Slime Attack","Skeleton Smn","Goblin Smn","Succubi Smn","Cyclops Smn","Angel Smn","Perks Bonus","Demon Essence","Slime Juice %","Slime Bonus %","Unknown Bonus"];
+const alAdjust=[0.6,0.3,1.0,1.5,0.3,1.0,0.4,0.7,0.2,2.0,1.0,0.7,1.0,0.4,0.1,0.05,0.1,0.05,0.025,0.07,0.2,0.1,0.5,1.0,1.0,0.005,0.1,0.06,0.1,0.2,0.08,0.08,0.08,0.08,0.08,0.06,0.2,0.1,0.06,1.0];
+const alAdditive=new Set([8,10,16,17,18]);
+const alCaps={0:26,13:11};
+let alMixes=new Array(40).fill(0);
+function alNum(id){const v=parseFloat(document.getElementById(id).value);return isFinite(v)?v:0;}
+function alCoef(i){
+  const B=(1+alNum('alSR6b'))*(1+alNum('alAB'))*(1+alNum('alBH')/20)*(1+alNum('alSR6p'));
+  const rest=(1+alNum('alSym'))*Math.pow(1.0025,alNum('alPomos'))*(1+alNum('alSli'))*(1+alNum('alG5')/100);
+  return B*alAdjust[i]*rest;
+}
+function alBase(m){return m>0?Math.pow(1.5,Math.log(m)/Math.log(2.5)):0;}
+function alValue(i,m){
+  const c=alCoef(i), b=alBase(m);
+  let v=alAdditive.has(i)?c*b:1+c*b*0.01;
+  if(alCaps[i]!==undefined) v=Math.min(alCaps[i],v);
+  return v;
+}
+function alFmt(i,v){return alAdditive.has(i)?'+'+fmtBig(v):'+'+fmtBig((v-1)*100)+'%';}
+function alMixesForCap(i){
+  const cap=alCaps[i]; if(cap===undefined) return '—';
+  const c=alCoef(i); if(c<=0) return '∞';
+  const need=alAdditive.has(i)?cap/c:(cap-1)*100/c;
+  const m=Math.pow(need,Math.log(2.5)/Math.log(1.5));
+  return fmtBig(Math.ceil(m));
+}
+function alRender(){
+  const el=document.getElementById('alTable'); if(!el) return;
+  let h='<tr><th>#</th><th>Bonus</th><th>Type</th><th>Adjust</th><th>Completed mixes</th><th>Value now</th><th>After +100 mixes</th><th>After +1,000 mixes</th><th>Mixes to cap</th></tr>';
+  for(let i=0;i<alNames.length;i++){
+    h+=`<tr><td>${i+1}</td><td>${alNames[i]}</td><td>${alAdditive.has(i)?'additive':'multiplier'}</td><td>${alAdjust[i]}</td><td><input type="number" min="0" step="1" value="${alMixes[i]||0}" data-i="${i}" class="alMixIn" style="width:90px;"></td><td id="alV${i}"></td><td id="alV${i}b"></td><td id="alV${i}c"></td><td id="alV${i}d"></td></tr>`;
+  }
+  el.innerHTML=h;
+  el.querySelectorAll('.alMixIn').forEach(e=>e.addEventListener('input',()=>{alMixes[+e.dataset.i]=parseFloat(e.value)||0; alCalc();}));
+  alCalc();
+}
+function alCalc(){
+  for(let i=0;i<alNames.length;i++){
+    const m=alMixes[i]||0, set=(id,t)=>{const e=document.getElementById(id); if(e) e.textContent=t;};
+    set('alV'+i,alFmt(i,alValue(i,m)));
+    set('alV'+i+'b',alFmt(i,alValue(i,m+100)));
+    set('alV'+i+'c',alFmt(i,alValue(i,m+1000)));
+    set('alV'+i+'d',alMixesForCap(i));
+  }
+}
+['alSR6b','alSR6p','alAB','alSli','alBH','alSym','alPomos','alG5'].forEach(id=>{const e=document.getElementById(id); if(e) e.addEventListener('input',alCalc);});
+alRender();
+
+// ---- Minion ----
+function mnExpToLevel(n){
+  // exp needed to go from level n to n+1; tier is chosen by (n-1) < limit, exactly as in PetLevelUp
+  const q=n-1;
+  const t=[[10,400,1,400],[20,4000,10,1500],[100,19000,20,3000],[150,260000,100,5000],[200,410000,150,10000],[220,1000000,200,450000],[240,10000000,220,1000000],[260,30000000,240,3500000],[280,100000000,260,7500000],[300,250000000,280,12500000],[320,500000000,300,75000000],[340,2000000000,320,150000000],[360,5000000000,340,250000000],[380,10000000000,360,750000000],[400,25000000000,380,1250000000],[420,50000000000,400,7500000000],[440,200000000000,420,15000000000],[460,500000000000,440,75000000000],[480,2000000000000,460,150000000000],[500,5000000000000,480,750000000000],[520,20000000000000,500,1500000000000]];
+  for(const [lim,base,off,step] of t){ if(q<lim) return lim===10?400+(n-1)*400:base+(n-off)*step; }
+  return 50000000000000+(n-520)*50000000000000;
+}
+function mnNum(id){const v=parseFloat(document.getElementById(id).value);return isFinite(v)?v:0;}
+let mnSaved={};
+function mnCalc(){
+  const tb=document.getElementById('mnTable'); if(!tb) return;
+  const L=Math.max(1,Math.floor(mnNum('mnLvl'))), cur=mnNum('mnExp'), tg=Math.floor(mnNum('mnTgt'));
+  const nxt=mnExpToLevel(L); let need=Math.max(0,nxt-cur);
+  for(let k=L+1;k<tg;k++) need+=mnExpToLevel(k);
+  if(tg<=L) need=0;
+  document.getElementById('mnExpOut').textContent=`${fmtBig(nxt)}  /  ${(Math.min(100,cur/nxt*100)).toFixed(1)}%  /  ${fmtBig(need)}`;
+  const n=mnNum;
+  const trophyC=1+n('mnTc5')+n('mnTc10'), trophyX=1+n('mnTx5')+n('mnTx10');
+  const ccBase=5+n('mnPPc')/50+n('mnP38')+trophyC;
+  const dcBase=5+n('mnPPd')/50+n('mnP39')/2+trophyX;
+  const cdMult=(1+n('mnMLc'))*(1+n('mnCk30'))*(1+n('mnCk10'))*((1+n('mnTd5'))+n('mnTd20'));
+  const spDiv=(1+n('mnMLs'));
+  const drOther=100*((1+n('mnTr5'))+n('mnTr15'))*(n('mnFP')/100)*(n('mnMLd')+1)*(1+n('mnAdv')/10)*(1+n('mnPPr')/100)*(1+n('mnCk14'))*(1+n('mnCk5'))*(n('mnAlch')||1)*(1+n('mnAT')/20)*(1+n('mnTS')*0.05)*(1+n('mnSO')/10);
+  const cc=ccBase+n('mnPCC'), cd=(50+n('mnPCD'))*cdMult, dc=dcBase+n('mnPDC'), ev=5+n('mnPEV');
+  const sp=150/spDiv/(n('mnPSP')/100+1), dr=drOther*((n('mnPDR')+100)/100);
+  const sv=mnSaved;
+  const imp=(k,f)=>sv[k]!==undefined?fmtBig(f(sv[k])):'—';
+  const rows=[
+    ['Crit chance %',cc,sv.cc,imp('cc',v=>v-ccBase)],
+    ['Crit damage %',cd,sv.cd,imp('cd',v=>v/cdMult-50)],
+    ['Double chance %',dc,sv.dc,imp('dc',v=>v-dcBase)],
+    ['Evade chance %',ev,sv.ev,imp('ev',v=>v-5)],
+    ['Attack speed (lower is faster)',sp,sv.sp,imp('sp',v=>(150/spDiv/v-1)*100)],
+    ['Drop chance',dr,sv.dr,imp('dr',v=>(v/drOther)*100-100)]
+  ];
+  let h='<tr><th>Stat</th><th>Calculated now</th><th>Saved in-game value</th><th>Implied Pull from saved value</th></tr>';
+  rows.forEach(r=>{h+=`<tr><td>${r[0]}</td><td>${fmtBig(r[1])}</td><td>${r[2]!==undefined?fmtBig(r[2]):'—'}</td><td>${r[3]}</td></tr>`;});
+  tb.innerHTML=h;
+}
+function mnRefresh(){
+  const set=(id,v)=>{const e=document.getElementById(id); if(e) e.value=v;};
+  if(typeof mlLevels!=='undefined'){ set('mnMLc',mlCalcBonus('critdmg',mlLevels.critdmg)); set('mnMLs',mlCalcBonus('speed',mlLevels.speed)); set('mnMLd',mlCalcBonus('drop',mlLevels.drop)); }
+  if(typeof alValue==='function') set('mnAlch',alValue(0,alMixes[0]||0));
+  if(typeof tsLevels!=='undefined') set('mnTS',tsLevels['TSDropRarity']||0);
+  const a=document.getElementById('tadArena'); if(a) { /* arena drop rarity level is a different item; keep typed value */ }
+  const lv=document.getElementById('tadPetLevel'); if(lv && !mnSaved.loaded) set('mnLvl',lv.value);
+  mnCalc();
+}
+['mnLvl','mnExp','mnTgt','mnPCC','mnPCD','mnPDC','mnPEV','mnPSP','mnPDR','mnTc5','mnTc10','mnTd5','mnTd20','mnTx5','mnTx10','mnTr5','mnTr15','mnPPc','mnPPd','mnPPr','mnP38','mnP39','mnMLc','mnMLs','mnMLd','mnCk30','mnCk10','mnCk14','mnCk5','mnFP','mnAdv','mnAT','mnTS','mnSO','mnAlch'].forEach(id=>{const e=document.getElementById(id); if(e) e.addEventListener('input',mnCalc);});
+(function(){const b=document.getElementById('mnRefresh'); if(b) b.addEventListener('click',mnRefresh);})();
+mnCalc();
 // ---- Baby Demons ----
 function recalcBD(){
   const lifetime = parseFloat(document.getElementById('bdLifetimeDemons').value)||0;
@@ -3164,7 +3808,175 @@ function processSaveData(d, statusEl){
   recalcSoul();
   filled.push(`Soul Shop (${soulFieldMap.length - soulSkipped}/${soulFieldMap.length} items, ${soulSkipped} skipped - no known field)`);
 
-  statusEl.innerHTML = `<div class="label">Loaded</div><div class="big" style="font-size:1rem;">${filled.join(', ')}</div>`;
+  // Highest Stage - shared across 4 tabs. The save keeps several stage counters that disagree (real save:
+  // MaxStage=MaxStageEver=305 but MaxStageLife=PetStage=324), so take the max of all of them.
+  // Challenge-aware: ChallengeResetMain zeroes MaxStageEver and snapshots the real value into TempMaxStageEver
+  // (confirmed from StatsSaveChallenge.ChallengeResetMain). CurrentChallenge != 0 means the save was taken inside one.
+  const inChallenge = d.CurrentChallenge !== undefined && bdVal(d.CurrentChallenge) > 0;
+  const stageKeys = ['MaxStage','MaxStageEver','MaxStageLife','PetStage','TempMaxStageEver','TempMaxStageLife'];
+  const stageVals = stageKeys.filter(k=>d[k] !== undefined).map(k=>bdVal(d[k]));
+  if (stageVals.length){
+    const stage = Math.max(...stageVals);
+    const reincStageEl = document.getElementById('reincStage'); if (reincStageEl) reincStageEl.value = stage;
+    const trophyStageEl = document.getElementById('trophyStage'); if (trophyStageEl) trophyStageEl.value = stage;
+    const stageCurEl = document.getElementById('stageCurrentInput'); if (stageCurEl) stageCurEl.value = stage;
+    const tadStageEl = document.getElementById('tadPetStage'); if (tadStageEl) tadStageEl.value = stage;
+    if (typeof recalcReinc === 'function') recalcReinc();
+    if (typeof recalcTrophy === 'function') recalcTrophy();
+    if (typeof recalcStageNext === 'function') recalcStageNext();
+    filled.push(`Highest Stage ${stage}${inChallenge ? ' (from pre-challenge snapshot TempMaxStageEver)' : ''}`);
+  }
+  // Pet Level - real key is capitalized PetLevel
+  if (d.PetLevel !== undefined){
+    const t = document.getElementById('tadPetLevel'); if (t) t.value = bdVal(d.PetLevel);
+    filled.push('Pet Level');
+  }
+  // Trophy bonuses feeding the Attack/Defense formula
+  if (d.MinionAtk5Bonus !== undefined){ const t=document.getElementById('tadTrophy5'); if(t) t.value = bdVal(d.MinionAtk5Bonus); }
+  if (d.MinionAtk10Bonus !== undefined){ const t=document.getElementById('tadTrophy10'); if(t) t.value = bdVal(d.MinionAtk10Bonus); }
+
+  // Meditation (levels, demons invested, current exp - all straight from the save's own per-track fields)
+  const medSave = [['manaLevel','manaSlaves','ManaCurrentExpBD'],['statsLevel','statsSlaves','StatsCurrentExpBD'],['incomeLevel','incomeSlaves','IncomeCurrentExpBD']];
+  let medFilled = 0;
+  medSave.forEach(([lv,sl,ex],i)=>{
+    if (d[lv] !== undefined){ document.getElementById('meditLvl'+i).value = bdVal(d[lv]); medFilled++; }
+    if (d[sl] !== undefined && !inChallenge){ document.getElementById('meditDemons'+i).value = bdVal(d[sl]); }
+    if (d[ex] !== undefined){ document.getElementById('meditExp'+i).value = bdVal(d[ex]); }
+  });
+  if (medFilled){ recalcMedit(); filled.push(`Meditation (${medFilled}/3 tracks: level, demons, exp)`); }
+  // Demons-invested breakdown. Boost counters + shared-pool pieces are real save fields; Equipment/Mood share is
+  // not stored separately, so it is derived: saved boostPermaSlave minus (Perma+Event+Daily+BoostAll).
+  const bdMap = {bdPermaSlaves:'PermaSlaves', bdEvent:'EventPermaSlaves', bdDaily:'DailyPermaSlaves', bdBoostAll:'boostAllCurrentSlaves'};
+  let bdFilled = 0;
+  if (!inChallenge) Object.keys(bdMap).forEach(id=>{ const f=bdMap[id]; const el=document.getElementById(id); if (el && d[f] !== undefined){ el.value = bdVal(d[f]); bdFilled++; } });
+  if (d.boostPermaSlave !== undefined && !inChallenge){
+    const known = ['PermaSlaves','EventPermaSlaves','DailyPermaSlaves','boostAllCurrentSlaves'].reduce((a,f)=>a+(d[f]!==undefined?bdVal(d[f]):0),0);
+    const resid = Math.max(0, bdVal(d.boostPermaSlave) - known);
+    const el = document.getElementById('bdPullPermaSlaves'); if (el){ el.value = Math.round(resid*1000)/1000; }
+  }
+  const bdBoostSave = [['boostManaPowerCurrentSlaves','boostManaRefillCurrentSlaves'],['boostStrengthCurrentSlaves','boostDefenseCurrentSlaves'],['boostExpCurrentSlaves','boostGoldCurrentSlaves']];
+  if (!inChallenge) bdBoostSave.forEach(([a,b],i)=>{
+    if (d[a] !== undefined) document.getElementById('bdA'+i).value = bdVal(d[a]);
+    if (d[b] !== undefined) document.getElementById('bdB'+i).value = bdVal(d[b]);
+  });
+  if (bdFilled && typeof recalcBreakdown === 'function'){ recalcBreakdown(); filled.push('Demons-invested breakdown'); }
+
+  // Cooking (12 rows: row level + perma %; 6 live S-rows: perma %)
+  let cookFilled = 0;
+  for (let n=1;n<=12;n++){
+    if (d['Row'+n+'Level'] !== undefined){ document.getElementById('cookLvl'+(n-1)).value = bdVal(d['Row'+n+'Level']); cookFilled++; }
+    if (d['Row'+n+'Perma'] !== undefined){ document.getElementById('cookPerma'+(n-1)).value = Math.round(bdVal(d['Row'+n+'Perma'])*10000)/10000; }
+  }
+  if (cookFilled){ recalcCook(); filled.push(`Cooking (${cookFilled}/12 rows)`); }
+  let scookFilled = 0;
+  for (let n=1;n<=6;n++){
+    const el = document.getElementById('scookPerma'+(n-1));
+    if (el && d['SRow'+n+'Perma'] !== undefined){ el.value = Math.round(bdVal(d['SRow'+n+'Perma'])*10000)/10000; scookFilled++; }
+  }
+  if (scookFilled){ recalcSCook(); filled.push(`Special Cooking (${scookFilled} rows)`); }
+
+  // Fishing (Fishing Skill level + current Mastery)
+  if (d.FishingSkill !== undefined){ document.getElementById('fishLevel').value = bdVal(d.FishingSkill); filled.push('Fishing Skill'); }
+  if (d.MasteryCurrent !== undefined){ document.getElementById('fishMasteryCur').value = bdVal(d.MasteryCurrent); }
+  recalcFish();
+
+  // Trophy Shop - 79 Newbie/Pro pairs; a purchased item has a nonzero <Name>Bonus field in the save, unpurchased = 0
+  const trophyBonusKeys = ["Spell25Bonus", "Spell100Bonus", "Gold25Bonus", "Gold100Bonus", "Exp10Bonus", "Exp50Bonus", "MinionAtk5Bonus", "MinionAtk10Bonus", "MinionDrop5Bonus", "MinionDrop15Bonus", "Dungeon15Bonus", "Dungeon50Bonus", "SlimeExp10Bonus", "SlimeExp25Bonus", "SlimeBed1Bonus", "SlimeBed2Bonus", "MinionCrit5Bonus", "MinionCrit10Bonus", "MinionDouble5Bonus", "MinionDouble10Bonus", "ReproductionCap1Bonus", "ReproductionCap3Bonus", "ConjuringDemons1Bonus", "ConjuringDemons3Bonus", "GeneratorCharge1Bonus", "GeneratorCharge2Bonus", "DungeonHP5Bonus", "DungeonHP25Bonus", "GatheringRes10Bonus", "GatheringRes50Bonus", "GatheringExp20Bonus", "GatheringExp100Bonus", "SlimeMood5Bonus", "SlimeMood15Bonus", "TrainingExp10Bonus", "TrainingExp25Bonus", "GatheringSpeed10Bonus", "GatheringSpeed25Bonus", "GeneratorTime15Bonus", "GeneratorTime45Bonus", "SlimeAdvSlot1Bonus", "SlimeAdvSlot2Bonus", "Vats3Bonus", "Vats6Bonus", "BFDmg25Bonus", "BFDmg100Bonus", "FishMastery10Bonus", "FishMastery50Bonus", "TempleMax1Bonus", "TempleMax3Bonus", "SanctuaryMax5Bonus", "SanctuaryMax20Bonus", "Perks10Bonus", "Perks30Bonus", "BFDE10Bonus", "BFDE30Bonus", "ClassesExp10Bonus", "ClassesExp25Bonus", "BFSMN5Bonus", "BFSMN20Bonus", "MinionCritDmg5Bonus", "MinionCritDmg20Bonus", "FishCaught1Bonus", "FishCaught2Bonus", "SpellLevel1Bonus", "SpellLevel3Bonus", "MinionLabLevel1Bonus", "MinionLabLevel2Bonus", "SlimeLabLevel1Bonus", "SlimeLabLevel2Bonus", "BossTime5Bonus", "BossTime10Bonus", "ClassesCharge1Bonus", "ClassesCharge2Bonus", "BFTimer10Bonus", "BFTimer20Bonus", "FasterStage1Bonus", "FasterStage2Bonus", "BDRequirement100Bonus", "BDRequirement200Bonus", "SynergyExp10Bonus", "SynergyExp20Bonus", "SynergySpeed5Bonus", "SynergySpeed10Bonus", "SynergyPow10Bonus", "SynergyPow20Bonus", "MinionRarity10Bonus", "MinionRarity20Bonus", "GenV2Charge2Bonus", "GenV2Charge4Bonus", "GenV2Time1Bonus", "GenV2Time2Bonus", "MinionLabCap1Bonus", "MinionLabCap2Bonus", "ReprodV2Timer1Bonus", "ReprodV2Timer2Bonus", "MeditationCost1Bonus", "MeditationCost2Bonus", "AutoQuestLimit5kBonus", "AutoQuestLimit10kBonus", "SlimeAutoAdvance3Bonus", "SlimeAutoAdvance7Bonus", "GenV2Bonus15Bonus", "GenV2Bonus35Bonus", "AlchVats1Bonus", "AlchVats2Bonus", "SpecialFishing10Bonus", "SpecialFishing20Bonus", "DailyReward30Bonus", "DailyReward70Bonus", "DemonMarket1Bonus", "DemonMarket2Bonus", "AutoFeeder3Bonus", "AutoFeeder9Bonus", "SynergyEnergy30Bonus", "SynergyEnergy70Bonus", "ArenaSkill30Bonus", "ArenaSkill70Bonus", "ArenaTokenReward15Bonus", "ArenaTokenReward35Bonus", "ArenaExp15Bonus", "ArenaExp35Bonus", "ArenaNuke5Bonus", "ArenaNuke15Bonus", "DumpResetTimer6Bonus", "DumpResetTimer18Bonus", "DumpReset1Bonus", "DumpReset3Bonus", "SynV2RefBonus30Bonus", "SynV2RefBonus70Bonus", "SynV2PureBonus30Bonus", "SynV2PureBonus70Bonus", "SynV2MechExp30Bonus", "SynV2MechExp70Bonus", "BabyDemonExp15Bonus", "BabyDemonExp35Bonus", "ShadowCostReduc5Bonus", "ShadowCostReduc15Bonus", "ClassesExp50Bonus", "ClassesExp150Bonus", "ReincBonus50Bonus", "ReincBonus150Bonus", "SpellGoldExpDung50Bonus", "SpellGoldExpDung150Bonus", "AMBoostBaby5Bonus", "AMBoostBaby15Bonus", "BHLvlReduceBHCost1Bonus", "BHLvlReduceBHCost3Bonus", "NukeFishing200Bonus", "NukeFishing500Bonus", "SlimeAutoRecycle15Bonus", "SlimeAutoRecycle35Bonus", "Darkmatter100Bonus", "Darkmatter300Bonus", "IFChallenge15Bonus", "IFChallenge35Bonus", "EndaversDrop15Bonus", "EndaversDrop35Bonus"];
+  let trFilled = 0, trOwned = 0;
+  trophyBonusKeys.forEach((key,i)=>{
+    const el = document.getElementById('trophyChk'+i);
+    if (el && d[key] !== undefined){ const own = bdVal(d[key]) > 0; el.checked = !own; trFilled++; if (own) trOwned++; }  // checked = still to buy
+  });
+  if (trFilled){ filled.push(`Trophy Shop (${trOwned} owned / ${trFilled-trOwned} left to buy - boxes now tick what you STILL need)`); }
+  if (d.TrophyPoint !== undefined){ const el=document.getElementById('trophyBalance'); if (el) el.value = bdVal(d.TrophyPoint); }
+  recalcTrophy();
+
+  // Baby Demons - confirmed from Reproduction.ReproductionTick:
+  // Max = floor(TotalSlaves / (1000 - (BDReq100 + BDReq200 + TSBabyDemonRate*10 + PP.BabyDemonsRate*2 + Singularity bonus)))
+  if (d.TotalSlaves !== undefined && !inChallenge){ const el=document.getElementById('bdLifetimeDemons'); if (el) el.value = bdVal(d.TotalSlaves); filled.push('Baby Demons (total demons, requirement sources)'); }
+  if (d.BabyDemonsRate !== undefined){ const el=document.getElementById('bdPlazaRate'); if (el) el.value = Math.min(100, 2*bdVal(d.BabyDemonsRate)); }
+  if (d.infStoreItemsLevel && d.infStoreItemsLevel._items){ const el=document.getElementById('bdSingularity'); if (el) el.value = Math.min(300, 2*(d.infStoreItemsLevel._items[0]||0)); }
+  // Baby Demons - requirement trophies
+  if (d.BDRequirement100Bonus !== undefined){ const el=document.getElementById('bdNewbieTrophy'); if (el) el.checked = bdVal(d.BDRequirement100Bonus) > 0; }
+  if (d.BDRequirement200Bonus !== undefined){ const el=document.getElementById('bdProTrophy'); if (el) el.checked = bdVal(d.BDRequirement200Bonus) > 0; }
+  if (typeof recalcBD === 'function') recalcBD();
+
+  // Minion Lab (8 feed-upgrade track levels)
+  const mlSaveFields = {atk:'AttackLevel', def:'DefenseLevel', critdmg:'CritDmgLevel', speed:'SpeedLevel', drop:'DropLevel', rarity:'RarityLevel', respawn:'RespawnLevel', advexp:'AdvExpLevel'};
+  let mlFilled = 0;
+  Object.keys(mlSaveFields).forEach(key=>{
+    const f = mlSaveFields[key];
+    if (d[f] !== undefined){ mlLevels[key] = bdVal(d[f]); mlFilled++; }
+  });
+  if (mlFilled){ mlRenderTable(); filled.push(`Minion Lab (${mlFilled}/8 tracks)`); }
+
+  // Challenges (14 regular completions + 6 Infinite - Infinite shown informationally, not in the bonus total)
+  const chSaveFields = {1:'FirstStepCompletion', 2:'SecondChallengeCompletion', 3:'Challenge3Completion', 4:'Challenge4Completion', 5:'Challenge5Completion', 6:'Challenge6Completion', 7:'Challenge7Completion', 8:'Challenge8Completion', 9:'Challenge9Completion', 10:'Challenge10Completion', 11:'Challenge11Completion', 12:'Challenge12Completion', 13:'Challenge13Completion', 14:'Challenge14Completion'};
+  let chFilled = 0;
+  Object.keys(chSaveFields).forEach(num=>{
+    const f = chSaveFields[num];
+    if (d[f] !== undefined){ chCompletionCounts[num] = bdVal(d[f]); chFilled++; }
+  });
+  if (chFilled){ chRenderTable(); chRecalcTotal(); filled.push(`Challenges (${chFilled}/14)`); }
+
+  // Tribute Shop (21 main-shop item levels)
+  let tsFilled = 0;
+  tsItems.forEach(([key])=>{
+    if (d[key] !== undefined){ tsLevels[key] = bdVal(d[key]); tsFilled++; }
+  });
+  if (tsFilled){ tsRenderTable(); filled.push(`Tribute Shop (${tsFilled}/21 items)`); }
+  // Arena Shop (token-shop item levels + 12 skill levels + Soul-shop buys), then sync into the master calculator
+  let arFilled = 0;
+  arItems.forEach(it=>{ if (d[it[0]] !== undefined){ arLevels[it[0]] = Math.max(0, Math.min(it[3], Math.round(bdVal(d[it[0]])))); arFilled++; } });
+  arSoulItems.forEach(it=>{ if (d[it[0]] !== undefined){ arSoulLevels[it[0]] = Math.max(0, Math.min(it[3], Math.round(bdVal(d[it[0]])))); } });
+  if (d.arenaToken !== undefined){ const el=document.getElementById('arTokens'); if (el) el.value = bdVal(d.arenaToken); }
+  if (d.genV2Permanent && d.genV2Permanent._items){
+    gv2Perm = d.genV2Permanent._items.slice(0,6).map(bdVal);
+    const sv=(id,k)=>{ if(d[k]!==undefined){const e=document.getElementById(id); if(e) e.value=bdVal(d[k]);} };
+    sv('gv2Cur','CurrentV2Charge'); sv('gv2Max','MaxV2Charge'); sv('gv2Mach','MachinistGenV2Bonus'); sv('gv2T15','GenV2Bonus15Bonus'); sv('gv2T35','GenV2Bonus35Bonus'); sv('gv2Pull','PullGenBonus');
+    if(d.CurrentEssenceBD!==undefined){const e=document.getElementById('gv2Essence'); if(e) e.value=bdVal(d.CurrentEssenceBD).toExponential(3);}
+    const sg=document.getElementById('gv2Stage'), st=document.getElementById('stageCurrentInput'); if(sg&&st) sg.value=st.value;
+    gv2Sync(); filled.push('Generator V2');
+  }
+  if (d.PetCriticalChance !== undefined || d.BossTime5Bonus !== undefined){
+    const sv=(id,k)=>{ if(d[k]!==undefined){const e=document.getElementById(id); if(e) e.value=bdVal(d[k]);} };
+    sv('wbCC','PetCriticalChance'); sv('wbCD','PetCriticalDamage'); sv('wbDC','PetDoubleChance');
+    sv('wbWar','WarriorLevel'); sv('wbDS','DarkShadowLevel'); sv('wbBT5','BossTime5Bonus'); sv('wbBT10','BossTime10Bonus');
+    sv('wbU3','UWorldBoss3'); sv('wbC13','Challenge13Completion'); sv('wbC14','Challenge14Completion'); sv('wbIF1','IFChallenge1Completion');
+    wbSyncFromTad(); filled.push('World Boss');
+  }
+  if (d.ALabCompletedMixes && d.ALabCompletedMixes._items !== undefined || Array.isArray(d.ALabCompletedMixes)){
+    const arr = Array.isArray(d.ALabCompletedMixes) ? d.ALabCompletedMixes : d.ALabCompletedMixes._items;
+    alMixes = arr.slice(0,40).map(x=>Math.round(bdVal(x)*100)/100);
+    const sv=(id,k)=>{ if(d[k]!==undefined){const e=document.getElementById(id); if(e) e.value=bdVal(d[k]);} };
+    sv('alSR6b','SRow6Buff'); sv('alSR6p','SRow6Perma'); sv('alAB','ABAlchemyBonuses'); sv('alSli','SliAlchemyBonus'); sv('alPomos','PomosAlchemyBonusesLevel');
+    alRender(); filled.push('Alchemy Lab');
+  }
+  if (d.PetLevel !== undefined && d.PetExpToLevel !== undefined){
+    const sv=(id,k,f)=>{ if(d[k]!==undefined){const e=document.getElementById(id); if(e) e.value=f?f(d[k]):bdVal(d[k]);} };
+    sv('mnLvl','PetLevel'); sv('mnExp','PetCurrentExp'); sv('mnTgt','PetLevel',v=>bdVal(v)+10);
+    sv('mnTc5','MinionCrit5Bonus'); sv('mnTc10','MinionCrit10Bonus'); sv('mnTd5','MinionCritDmg5Bonus'); sv('mnTd20','MinionCritDmg20Bonus');
+    sv('mnTx5','MinionDouble5Bonus'); sv('mnTx10','MinionDouble10Bonus'); sv('mnTr5','MinionDrop5Bonus'); sv('mnTr15','MinionDrop15Bonus');
+    sv('mnPPc','CritChancePerkI'); sv('mnPPd','DoubleChancePerkI'); sv('mnPPr','DropPerkI');
+    sv('mnCk10','Row10Perma'); sv('mnCk5','Row5Perma'); sv('mnCk30','Line30Buff'); sv('mnCk14','Line14Buff');
+    sv('mnFP','DropChanceBonus'); sv('mnAdv','AdvDropRarityBonus'); sv('mnAT','ATDropRarity'); sv('mnSO','DropRarity');
+    if(d.page3Perks && d.page3Perks._items){ const it=d.page3Perks._items; const e8=document.getElementById('mnP38'), e9=document.getElementById('mnP39'); if(e8&&it[8]!==undefined) e8.value=bdVal(it[8]); if(e9&&it[9]!==undefined) e9.value=bdVal(it[9]); }
+    mnSaved={loaded:1,cc:bdVal(d.PetCriticalChance),cd:bdVal(d.PetCriticalDamage),dc:bdVal(d.PetDoubleChance),ev:bdVal(d.PetEvadeChance),sp:bdVal(d.PetAttackSpeed),dr:bdVal(d.PetDropChance)};
+    mnRefresh(); filled.push('Minion');
+  }
+  if (arFilled){ arRenderTable(); arSoulRender(); filled.push(`Arena Shop (${arFilled}/${arItems.length} items)`); }
+  if (typeof tadRecalc === 'function') tadRecalc();
+
+  // Challenge Readiness inputs (stage computed above; mana cap = ManaLimitBD or pre-challenge snapshot)
+  { const set=(id,v)=>{ const el=document.getElementById(id); if (el) el.value = v; };
+    if (stageVals.length) set('chpStage', Math.max(...stageVals));
+    const mcs=[d.ManaLimitBD, d.TempManaLimitBD].filter(x=>x!==undefined).map(bdVal); if (mcs.length) set('chpManaCap', Math.max(...mcs));
+    if (d.ExpRefillBonusBD !== undefined) set('chpRefill', bdVal(d.ExpRefillBonusBD));
+    if (d.ExpPowerBonusBD !== undefined) set('chpPower', bdVal(d.ExpPowerBonusBD));
+    if (!inChallenge && d.ReincarnateBonusBD !== undefined) set('chpReinc', bdVal(d.ReincarnateBonusBD));
+    if (typeof chReadyRender==='function') chReadyRender(); }
+  const challWarn = inChallenge ? `<div style="margin-top:8px;color:var(--warn);font-size:.85rem;">This save was taken INSIDE Challenge ${bdVal(d.CurrentChallenge)}. Highest Stage comes from the game's own pre-challenge snapshot. Demon counts (Meditation demons invested + the breakdown pools) are challenge-state, so they were NOT imported - keep your last out-of-challenge values or load an out-of-challenge save for those.</div>` : '';
+  statusEl.innerHTML = `<div class="label">Loaded</div><div class="big" style="font-size:1rem;">${filled.join(', ')}</div>${challWarn}`;
   recalcRecommend();
 }
 
