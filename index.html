@@ -108,7 +108,7 @@ td,th{overflow-wrap:anywhere;}
 </head>
 <body>
 <div class="wrap">
-  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v141 · 2026-10-20</span></h1>
+  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v142 · 2026-10-20</span></h1>
   <p class="sub">Formulas pulled directly from the game's compiled code + your save. Covers what's been fully verified so far — more tabs get added as more systems get decoded.</p>
 
   <div class="fontctl">
@@ -296,9 +296,9 @@ td,th{overflow-wrap:anywhere;}
   <div class="panel" id="gen">
     <div class="card">
       <h2>Generator (Power/Mana)</h2>
-      <p class="note">All 15 bonus types share the <b>same two global essence counters</b> (confirmed from a live screenshot: Mana Refill and Mana Power read identical values because they use the identical formula on the identical essence pool — this isn't a coincidence, the game really does share one pool across every type). Charges (max 3 base, +1 every 6h, Soul Shop can add more/speed it up) aren't modeled as a timer here — enter your current Spent/Current Essence directly. Formula per type: <code>bonus% = coef × 3^(const + rate × log_base(essence))</code>, confirmed structurally from the game's own code (3^(…) growth curve, per-type coefficient table) and cross-checked against the wiki's published formula table, which matched exactly for 10 of 11 "simple" types (Gold's published current-coefficient looked like a likely wiki rounding slip — used as published anyway, flagged below). Permanent uses Spent Essence (lifetime total); Current/Temporary uses Current Essence (what you're holding right now); combined multiplier = (1+Current/100)×(1+Permanent/100).</p>
+      <p class="note">Current essence is <b>one shared pool</b> for all 15 types, but <b>permanent essence is per generator</b> (each charge release moves essence into one generator; save field generatorsEssence) (confirmed from a live screenshot: Mana Refill and Mana Power read identical values because they use the identical formula on the identical essence pool — this isn't a coincidence, the game really does share one pool across every type). Charges (max 3 base, +1 every 6h, Soul Shop can add more/speed it up) aren't modeled as a timer here — enter your current Spent/Current Essence directly. Formula per type: <code>bonus% = coef × 3^(const + rate × log_base(essence))</code>, confirmed structurally from the game's own code (3^(…) growth curve, per-type coefficient table) and cross-checked against the wiki's published formula table, which matched exactly for 10 of 11 "simple" types (Gold's published current-coefficient looked like a likely wiki rounding slip — used as published anyway, flagged below). Permanent uses Spent Essence (lifetime total); Current/Temporary uses Current Essence (what you're holding right now); combined multiplier = (1+Current/100)×(1+Permanent/100).</p>
       <div class="row"><label>Current Essence (held right now)</label><input type="number" id="genCurEss" value="1.34e23" step="any"></div>
-      <div class="row"><label>Spent Essence a.k.a. "Essence Generated" (lifetime total, shown on the Generator tab)</label><input type="number" id="genSpentEss" value="8.569e21" step="any"></div>
+      <div class="row"><label>Spent Essence (used for every generator until a save is loaded; a save fills each generator's own permanent essence from generatorsEssence, shown under each one)</label><input type="number" id="genSpentEss" value="8.569e21" step="any"></div>
       <div class="row"><label>Generator Bonus multiplier <span style="color:var(--sub)">(folds in Dwarven Workshop, GenV2 Row 2, Synergy layer 13, Pomos talent, Blackholes, Machinist/Cultist class bonuses — all ×1 by default; nudge up if your real numbers read higher than shown, matched a live screenshot to within ~4% at 1.00)</span></label><input type="number" id="genBonusMult" value="1" step="0.001"></div>
       <div class="row"><label>Achievement Trophy count <span style="color:var(--sub)">(from completing Achievement tasks, Infos &gt; Achievements screen — NOT the same currency as the separate "Trophy Shop" 10-tier purchase system, see that tab. Re-confirmed from the wiki's Achievements page: 0.05%/trophy to Mana Refill/Power, Gold/Exp, Essence(Reincarnate type)/Meditation/Reincarnation Bonus; 0.1%/trophy — double rate — to Offense/Defense; 0.025%/trophy to Dungeon; 0.01%/trophy to Soul gain (not wired, no Soul-gain-rate field in this calculator); Mana &amp; Spirit Speed +0.025%/trophy (also not wired, no matching field). Now wired into the Generator types below — likely explains most of the Offense/Defense gap this panel had flagged before)</span></label><input type="number" id="genTrophy" value="0" step="1"></div>
       <div class="upgrade-grid" id="genGrid"></div>
@@ -2423,6 +2423,8 @@ function genRow(name, unlock){
   return id;
 }
 const genSimpleIds = genSimple.map(g=>genRow(g.name, g.unlock));
+// save index of each generator's own permanent essence (PowerMana.generatorsEssence): refill 0, power 1, offense 2, defense 3, gold 4, exp 5, meditation 6, dungeon 7, reincarnate 8, gathering 9, battlefield 10
+const genSaveIdx = [0,1,8,2,3,6,4,5,7,9,10]; var genSpentArr = null;
 const genSoftIds = genSoftcap.map(g=>genRow(g.name, g.unlock));
 function recalcGen(){
   const curEss = Math.max(1, parseFloat(document.getElementById('genCurEss').value)||1);
@@ -2435,11 +2437,12 @@ function recalcGen(){
     const el = document.getElementById('genOut'+id);
     if (!el) return;
     const trophyMult = 1 + trophy*(g.trophyRate||0);
-    const perm = g.coefPerm * Math.pow(3, g.constPerm + g.rate*logb(spentEss, g.base)) * mult * trophyMult;
+    const sp_ = (genSpentArr && genSpentArr[genSaveIdx[i]]>0) ? genSpentArr[genSaveIdx[i]] : (genSpentArr ? 1 : spentEss);
+    const perm = sp_>1 ? g.coefPerm * Math.pow(3, g.constPerm + g.rate*logb(sp_, g.base)) * mult * trophyMult : 0;
     const curr = g.coefCurr * Math.pow(3, g.constCurr + g.rate*logb(curEss, g.base)) * mult * trophyMult;
     const combo = (1+curr/100)*(1+perm/100);
     const trophyNote = g.trophyRate ? ` <span style="color:var(--sub)">(incl. ${((trophyMult-1)*100).toFixed(2)}% Trophy)</span>` : '';
-    el.innerHTML = `Current: <b>${curr.toFixed(2)}%</b> &nbsp; Permanent: <b>${perm.toFixed(2)}%</b>${trophyNote}<br>Combined ×<b>${combo.toFixed(3)}</b>`;
+    el.innerHTML = `Current: <b>${curr.toFixed(2)}%</b> &nbsp; Permanent: <b>${perm.toFixed(2)}%</b>${trophyNote}<br>Combined ×<b>${combo.toFixed(3)}</b>${genSpentArr?`<br><span style="color:var(--sub)">this generator's essence: ${fmtBig(sp_)}</span>`:''}`;
   });
   genSoftcap.forEach((g,i)=>{
     const id = genSoftIds[i];
@@ -5528,6 +5531,60 @@ async function decodeSaveFile(text){
   return parser.resolve(root);
 }
 
+// v142: fields that had no loader (import audit 2026-10-20): Gathering, Generator, Reincarnation, Baby Demon boosts,
+// Exp Shop specials, cooking rows 4-12 / S-rows (fractions in the save; CookingMain shows x100), soul shop counts, minion perks
+function importExtra(d, filled){
+  const g=k=>(d[k]!==undefined&&d[k]!==null)?(bdVal(d[k])||0):undefined, gz=k=>g(k)||0;
+  const set=(id,v)=>{ const e=document.getElementById(id); if(!e||v===undefined||v===null||!isFinite(v)) return false; e.value=(Math.abs(v)>=1e7)?Number(v).toExponential(4):Math.round(v*10000)/10000; return true; };
+  const chk=(id,b)=>{ const e=document.getElementById(id); if(e) e.checked=!!b; };
+  const done=[];
+  // Gathering tab (tracks gVoid / astral / divine)
+  { const tr=[d.gVoid,d.astral,d.divine]; let k=0; tr.forEach((t,i)=>{ if(!t) return; set('gathLvl'+i,bdVal(t.level)); set('gathDemons'+i,bdVal(t.slaves)); k++; });
+    const c7=gz('Challenge7Bonus'); set('gathOreChance',gz('GatheringOreChance')+5*c7); set('gathGemChance',1+gz('GatheringGem')+c7);
+    // speed and resource bonus from save terms (gear Gathering Speed/Res is not in the save; the Plaza ratio planner has gear inputs)
+    const ck4=1+gz('Row4Perma'); const ge=(d.generatorsEssence&&d.generatorsEssence._items)?d.generatorsEssence._items.map(x=>bdVal(x)||0):[]; const gbb=gz('generatorBonusBonus')||1;
+    const gp=(E,perm)=>{ if(!(E>1)) return 0; return (perm?0.133:0.067)*Math.pow(3,1.6+0.2*Math.log(E)/Math.log(15)); };
+    const SB=(gz('SoulGatheringExpBonus')||1)*((gz('GatheringBonus')||100)/100)*(1+gz('DemonicUpgradeGatheringSpeedLevel')/50)*ck4*(1+gz('GathSpdPerkI')/100)*(1+gz('GatheringSpeed10Bonus')+gz('GatheringSpeed25Bonus'));
+    const RBD=(1+gz('TrainingSaveLevel')/10)*(1+gbb*gp(ge[9]||0,true)/100)*(1+gbb*gp(gz('CurrentEssenceBD'),false)/100)*ck4*(1+gz('GathResPerkI')/100)*(1+gz('GatheringRes10Bonus')+gz('GatheringRes50Bonus'));
+    tr.forEach((t,i)=>{ if(t) set('gathRate'+i, bdVal(t.slaves)*SB*10); }); set('gathRBD',RBD);
+    if(k) done.push('Gathering ('+k+' tracks; speed and resource bonus exclude gear)'); }
+  // Generator tab
+  { const ge=(d.generatorsEssence&&d.generatorsEssence._items)?d.generatorsEssence._items.map(x=>bdVal(x)||0):null;
+    if(g('CurrentEssenceBD')!==undefined) set('genCurEss',g('CurrentEssenceBD')); if(ge){ genSpentArr=ge; set('genSpentEss',ge.reduce((a,b)=>a+b,0)); }
+    if(g('generatorBonusBonus')!==undefined) set('genBonusMult',g('generatorBonusBonus')); if(g('AchievementTrophy')!==undefined) set('genTrophy',g('AchievementTrophy'));
+    if(typeof recalcGen==='function') recalcGen(); done.push('Generator (current essence, each generator\'s own essence, Dwarven bonus, trophies)'); }
+  // Reincarnation tab: current = stored life bonuses (component = 100 + raw x M), next = this life
+  { const st=parseFloat((document.getElementById('reincStage')||{}).value)||0; const LS=g('LifeStageBonusBD'), LC=g('LifeConjuringBonusBD'), LM=g('LifeMeditationBonusBD');
+    if(LS!==undefined&&st>0){ const M=(LS-100)/(st/3); set('reincMCur',M); if(LC!==undefined&&M>0){ const r=(LC-100)/M; if(r>0) set('reincManaCur',Math.pow(10,(Math.log(r)/Math.log(3)-0.8)/0.25)); } if(LM!==undefined&&M>0) set('reincMeditCur',(LM-100)/M*3); }
+    if(g('ConjuringTotalManaSpentBD')!==undefined) set('reincManaNext',g('ConjuringTotalManaSpentBD')); if(g('totalMeditationLevel')!==undefined) set('reincMeditNext',g('totalMeditationLevel'));
+    const nr=gz('Challenge11Completion')>=1; set('reincDECur',0); set('reincDENext',nr?gz('DELifeBD'):0);
+    const Mest=parseFloat((document.getElementById('prp_Mest')||{}).value); if(Mest>0) set('reincMNext',Mest);
+    if(typeof recalcReinc==='function') recalcReinc(); done.push('Reincarnation (current from stored life bonuses, next from this life; next M estimated from save levels)'); }
+  // Baby Demons: assignments, speed multiplier, Plaza perk rate
+  { const f=['HellSpiritCurrentBaby','DemonicEssenceCurrentBaby','PlazaPerkCurrentBaby','FishingEnduranceCurrentBaby','GenealogyExpCurrentBaby','ArenaTokenCurrentBaby','DumpTokenCurrentBaby','SynergyEssenceCurrentBaby'];
+    let k=0; f.forEach((x,i)=>{ if(g(x)!==undefined){ set('bdBoostQty'+i,g(x)); k++; } });
+    set('bdExpMult',Math.min(1+gz('Row8Perma'),10)*(1+0.15*gz('BabyDemonExp15Bonus')+0.35*gz('BabyDemonExp35Bonus')));
+    if(g('BabyDemonsRate')!==undefined) set('bdPlazaRate',gz('BabyDemonsRate')*2);
+    if(typeof recalcBD==='function') try{recalcBD();}catch(e){} if(typeof recalcBDBoosts==='function') try{recalcBDBoosts();}catch(e){} if(k) done.push('Baby Demon boosts ('+k+')'); }
+  // Exp Shop specials (ExpSpecial* > 0 = owned)
+  { const m=['ExpSpecialSpeed1','ExpSpecialTraining1','ExpSpecialGenerator1','ExpSpecialDungeon1','ExpSpecialChallenge1','ExpSpecialConjuring1','ExpSpecialGathering1','ExpSpecialGathering2','ExpSpecialSpeed2','ExpSpecialFishingRod1','ExpSpecialFishingBait1','ExpSpecialDungeon2',null,'ExpSpecialFishingRod9','ExpSpecialFishingBait7','ExpSpecialFishingBait10','ExpSpecialFishingBait12','ExpSpecialFishingBait17','ExpSpecialFishingBait20'];
+    let k=0; m.forEach((x,i)=>{ if(x&&g(x)!==undefined){ chk('expSpecChk'+i,gz(x)>0); k++; } }); if(typeof recalcExpSpec==='function') try{recalcExpSpec();}catch(e){} if(k) done.push('Exp Shop specials ('+k+')'); }
+  // Cooking: rows 4-12 and S-rows are fractions in the save (the game displays x100)
+  { for(let n=4;n<=12;n++){ if(g('Row'+n+'Perma')!==undefined) set('cookPerma'+(n-1),gz('Row'+n+'Perma')*100); }
+    for(let n=1;n<=6;n++){ if(g('SRow'+n+'Perma')!==undefined) set('scookPerma'+(n-1),gz('SRow'+n+'Perma')*100); }
+    done.push('Cooking perma rows 4-12 and S-rows'); }
+  // Soul shop counts for owned items that are stored as on/off, Auto Town quantity
+  { const own=(i,v)=>{ const e=document.getElementById('soulOwn'+i); if(e&&v!==undefined) e.value=v; };
+    if(g('SoulAutoTownQty')!==undefined) own(12,gz('SoulAutoTownQty')); else if(g('SoulAutoTown')!==undefined) own(12,gz('SoulAutoTown'));
+    if(g('SoulAutoSlaves')!==undefined) own(13,gz('SoulAutoSlaves'));
+    if(typeof recalcSoul==='function') try{recalcSoul();}catch(e){} }
+  // Adventure / minion perks and soul boost
+  { if(g('MinionAtkPerkI')!==undefined) set('tadPPAtk',g('MinionAtkPerkI')); if(g('MinionDefPerkI')!==undefined) set('tadPPDef',g('MinionDefPerkI'));
+    if(g('SoulAdvBoostBonus')!==undefined) set('tadSoul',g('SoulAdvBoostBonus')); if(g('RarityPerkI')!==undefined) set('mnRPerk',g('RarityPerkI'));
+    done.push('Adventure/minion perks'); }
+  if(done.length) filled.push(...done);
+}
+
 function processSaveData(d, statusEl){
   const filled = [];
 
@@ -5918,6 +5975,7 @@ function processSaveData(d, statusEl){
     tsRenderPage3(); filled.push('Tribute page 3');
   }
   if (arFilled){ arRenderTable(); arSoulRender(); filled.push(`Arena Shop (${arFilled}/${arItems.length} items)`); }
+  try{ importExtra(d, filled); }catch(e){ console.log('importExtra',e); filled.push('(extra import error: '+e.message+')'); }
   if (typeof tadRecalc === 'function') tadRecalc();
 
   // Challenge Readiness inputs (stage computed above; mana cap = ManaLimitBD or pre-challenge snapshot)
