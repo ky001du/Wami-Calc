@@ -108,7 +108,7 @@ td,th{overflow-wrap:anywhere;}
 </head>
 <body>
 <div class="wrap">
-  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v142 · 2026-10-20</span></h1>
+  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v143 · 2026-10-20</span></h1>
   <p class="sub">Formulas pulled directly from the game's compiled code + your save. Covers what's been fully verified so far — more tabs get added as more systems get decoded.</p>
 
   <div class="fontctl">
@@ -150,7 +150,7 @@ td,th{overflow-wrap:anywhere;}
     <option value="genv2">Generator V2</option>
     <option value="summerevent">Summer Event</option>
     <option value="fromzero">True Simulator (from zero)</option>
-    <option value="history">History (your saves)</option>
+    <option value="history">History (your saves, this browser)</option>
     <option value="playthrough">Playthrough Simulator</option>
     <option value="worldboss">World Boss</option>
     <option value="alchlab">Alchemy Lab</option>
@@ -691,18 +691,19 @@ Past 331 the stand-ins are extrapolated, so the table stops there. Not simulated
   </div>
   <div class="panel" id="history">
     <div class="card">
-      <h2>History <span style="font-weight:400;color:var(--sub);">(your own saves, Aug 5 to Oct 16, rebuilt with the Offense formula; rows with a challenge number in the "In challenge" column are mid-challenge, so their Offense is artificially low)</span></h2>
-      <p class="note">Each row is one of your real saves. "Offense (log10)" is rebuilt with the Offense &amp; Defense builder formula from that save; saves are taken at random points in a life, so Offense swings up and down from day to day as lives restart (rebirths) and regrow.</p>
+      <h2>History <span style="font-weight:400;color:var(--sub);">(your own saves)</span></h2>
+      <p class="note">Every save you import adds a row here. Rows are kept <b>only in this browser</b> (nothing is uploaded, and other people who open this page see their own history, not yours). You can pick several save files at once in "Import your save"; they are added oldest first and the newest stays loaded. "Offense (log10)" is rebuilt with the Offense &amp; Defense builder formula from that save; rows with a number in "In challenge" were saved mid-challenge, so their Offense is artificially low.</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button id="histExport" type="button">Export history (.json)</button><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">Import history <input type="file" id="histImport" accept=".json" style="max-width:200px"></label><button id="histClear" type="button">Clear history</button></div>
+      <div id="histEmpty" class="note">No saves imported yet in this browser.</div>
       <div style="overflow-x:auto;"><table id="histTable"></table></div>
-      <div class="gap-note"><b>What October shows:</b> from Oct 1 to Oct 6 you stayed in one life (rebirths 231 to 232): Offense grew from about 1e32.7 to 1e35.3 and best stage from 312 to 324 in five days. After the Oct 7 reincarnation Offense was back to about 1e35 within five days, with Plaza prestiges going from 9 to 1,113 over Oct 7 to 12. So in October, recovery after a reincarnation took a few days, not the two weeks the Playthrough tab assumes.</div>
     </div>
     <div class="card">
-      <h2>What grew Offense by 22.8 orders of magnitude (Aug 5 to Oct 16)</h2>
-      <p class="note">Each line: how many orders of magnitude (powers of ten) of Offense would be lost if that one term were put back to its Aug 5 value. They overlap, so they do not add up exactly. Defense follows the same pattern.</p>
-      <table><tr><th>Term</th><th>Aug 5</th><th>Oct 16</th><th>Logs of Offense</th><th>What drives it</th></tr><tr><td>Training spells (Offense)</td><td>8.5e9</td><td>2.4e17</td><td>7.45</td><td>Mana Power x mana put into spells; Exp Shop Power and Refill, Conjuring</td></tr><tr><td>Reincarnation bonus</td><td>243%</td><td>231,000%</td><td>2.98</td><td>stage/3 + Conjuring mana spent + Meditation, times a ~700x multiplier</td></tr><tr><td>Generator 3 current (Offense)</td><td>275%</td><td>29,700%</td><td>2.03</td><td>Essence held (current side)</td></tr><tr><td>Generator 3 permanent</td><td>265%</td><td>15,500%</td><td>1.77</td><td>Essence spent into that generator</td></tr><tr><td>Dungeon attack bonus</td><td>1,260%</td><td>59,000%</td><td>1.67</td><td>Dungeon shadows</td></tr><tr><td>Demon boost (Stats)</td><td>147%</td><td>3,240%</td><td>1.34</td><td>Demons assigned to Stats boost</td></tr><tr><td>Demonic Upgrade: Training</td><td>0</td><td>6</td><td>0.85</td><td>Demonic Essence</td></tr><tr><td>Challenge 5 completions</td><td>0</td><td>5</td><td>0.78</td><td>Challenge rewards</td></tr><tr><td>Challenge 9 completions</td><td>0</td><td>3</td><td>0.74</td><td>Challenge rewards</td></tr><tr><td>Smithy (Town)</td><td>230%</td><td>1,090%</td><td>0.68</td><td>Gold</td></tr><tr><td>School (Town)</td><td>178%</td><td>496%</td><td>0.45</td><td>Gold</td></tr><tr><td>Achievement trophies</td><td>575</td><td>2,570</td><td>0.35</td><td>Achievements</td></tr><tr><td>Adventure save level</td><td>0</td><td>25</td><td>0.35</td><td>Adventure</td></tr><tr><td>Conjuring total</td><td>1</td><td>2.2</td><td>0.34</td><td>Conjuring spells</td></tr><tr><td>Open spell</td><td>131%</td><td>185%</td><td>0.33</td><td>Conjuring level</td></tr><tr><td>Pocus power</td><td>3</td><td>6</td><td>0.24</td><td>Conjuring level</td></tr><tr><td>Challenge 2 completions</td><td>1</td><td>3</td><td>0.22</td><td>Challenge rewards</td></tr><tr><td>Alchemy (spell bonus)</td><td>1</td><td>1.59</td><td>0.2</td><td>Alchemy Lab</td></tr></table>
-      <div class="gap-note">Reading it: the four biggest drivers are Training spells (7.5), the Reincarnation bonus (3.0), the two Generator terms (3.8) and Dungeon (1.7). Challenge completions, Demonic Upgrade and the demon Stats boost are each worth about 1 to 1.5 and came from one-time or slowly grown sources. This explains <i>what</i> grew, not yet <i>what the best order of buying was</i>; that needs the from-zero simulator, which is being calibrated against these rows.</div>
+      <h2>What grew your Offense (first save to latest save)</h2>
+      <p class="note">Each line: how many orders of magnitude (powers of ten) of Offense would be lost if that one term were put back to its value in your earliest saved row (outside challenges). They overlap, so they do not add up exactly.</p>
+      <div id="histDecomp" class="note">Import at least two saves to see this.</div>
     </div>
   </div>
+
   <div class="panel" id="playthrough">
     <div class="card">
       <h2>Playthrough simulator <span style="font-weight:400;color:var(--sub);">(your save, run forward day by day under different reincarnation plans)</span></h2>
@@ -1046,7 +1047,7 @@ Past 331 the stand-ins are extrapolated, so the table stops there. Not simulated
       <h2>Import your save</h2>
       <p class="note">Upload your save export (.txt) directly — it's decoded right here in your browser (nothing is uploaded anywhere) and fills in Slime Adventure, Town, Plaza, Battlefield, Classes, and more automatically.</p>
       <div class="row" style="margin-top:4px;">
-        <input type="file" id="saveFileInput" accept=".txt">
+        <input type="file" id="saveFileInput" accept=".txt" multiple>
       </div>
       <div class="result" id="loadStatus" style="display:none;"></div>
       <div class="gap-note">Auto-fills: Slime Adventure stage/prestige points/prestige slot levels (6), Alchemy Lab prestige count, Town (14 buildings + Challenge 12 count), Plaza (12 buildings + Demonic Upgrade level + price perk + Demon Market bonus), Battlefield buildings + Summon Level/Speed (5 each) + units + Hell Spirit shop (6) + Demonic Upgrade shop (16) + Necromancer Low-Sum Bonus, Classes (9 + Main/Sub), Dungeon training stats (Damage/Defense), Exp Shop core (3), Soul Shop (46/46), Plaza Prestige's 29 permanent perks, and the Plaza Perk shop's pages 1/2/4 (117 items). Two multiplier fields (Combined Summon Bonus, Perk Points bonus chain) are auto-filled too, but only from the save-backed terms in each formula — a handful of deferred systems (Classes Perma, Synergy, Waifu, Generator Pull, Trophy, Reincarnation Atomos/Pomos) feed into those two specifically and aren't tracked yet, so treat those two as a floor and nudge up by hand if you know your real numbers. Fields with no auto-fill: Unit Attack Bonus and Boss HP/Hits-per-second on the Dungeon tab (no single save field - see their own gap-notes), and the Exp Shop Special checklist + repeatable upgrades (30 items - the save has the data but the field numbering needs re-tracing before it can be mapped safely, see that tab's gap-note). Needs a browser with native gzip support (current Chrome/Edge/Firefox/Safari all qualify).</div>
@@ -4582,14 +4583,34 @@ function fzRunMC(){ var st=document.getElementById('fz_status'); var days=Math.m
       if(p.cal) p.cal={O:[FZ_CAL.O[0]+j(),FZ_CAL.O[1]*k(),200],M:[FZ_CAL.M[0]+j(),FZ_CAL.M[1]*k(),200],E:[FZ_CAL.E[0]+j(),FZ_CAL.E[1]*k(),200],S:[FZ_CAL.S[0]+j(),FZ_CAL.S[1]*k(),200],R:[FZ_CAL.R[0]+j(),FZ_CAL.R[1]*k(),200],G:[FZ_CAL.G[0]+j(),FZ_CAL.G[1]*k(),170]};
       res.push(FZ.run(p,days,{goals:FZ_GOALS})); i++; next(); },20); };
   next(); }
+(function(){ const ex=document.getElementById('histExport'), im=document.getElementById('histImport'), cl=document.getElementById('histClear');
+  if(ex) ex.addEventListener('click',()=>{ const blob=new Blob([JSON.stringify({rows:histData,snaps:histSnaps})],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='wami-history.json'; a.click(); });
+  if(im) im.addEventListener('change',async e=>{ const f=e.target.files[0]; if(!f) return; try{ const o=JSON.parse(await f.text()); if(o&&Array.isArray(o.rows)){ const m={}; histData.concat(o.rows).forEach(r=>m[r[0]]=r); histData=Object.values(m).sort((a,b)=>a[0]<b[0]?-1:1); Object.assign(histSnaps,o.snaps||{}); histSave(); histRender(); } }catch(err){ alert('Not a history file: '+err.message); } });
+  if(cl) cl.addEventListener('click',()=>{ if(confirm('Clear the save history stored in this browser?')){ histData=[]; histSnaps={}; histSave(); histRender(); } }); })();
 (function(){ var b=document.getElementById('fz_run'); if(b&&b.addEventListener) b.addEventListener('click',fzRunOnce); var c=document.getElementById('fz_mc'); if(c&&c.addEventListener) c.addEventListener('click',fzRunMC); })();
 
-var histData=[["2026-08-05 14:38", 24, 169, 161, 14.12, 9.93, 243, 933, 1314, 1014.9999999999999, 0, 0, 0, 56, 0.86, 0.17], ["2026-08-06 06:21", 32, 169, 144, 13.54, 9.75, 301, 936, 1445, 1124, 0, 0, 8, 70, 0.63, 0.15], ["2026-08-07 05:25", 33, 173, 173, 15.03, 10.59, 334, 936, 1445, 1231, 0, 0, 8, 48, 0.85, 0.18], ["2026-08-08 06:30", 34, 181, 181, 15.83, 10.93, 373, 1122, 1816, 1377, 0, 0, 0, 48, 1.12, 0.27], ["2026-08-09 05:50", 34, 181, 181, 16.06, 11.02, 373, 1224, 1942, 1460, 1, 0, 0, 42, 1.17, 0.29], ["2026-08-10 04:51", 37, 186, 100, 11.36, 8.26, 252, 1349, 2100, 1565, 0, 0, 5, 77, 0.23, 0.12], ["2026-08-11 05:31", 40, 186, 130, 11.92, 9.06, 201, 1349, 2100, 1565, 15, 0, 4, 64, 0.01, 0.09], ["2026-08-12 04:46", 40, 186, 158, 15.83, 10.61, 201, 1349, 2100, 1565, 1, 0, 0, 42, 1.18, 0.29], ["2026-08-13 04:18", 41, 186, 175, 16.76, 11.17, 430, 1349, 2100, 1565, 1, 0, 0, 45, 1.22, 0.32], ["2026-08-14 04:44", 44, 186, 143, 15.08, 10.35, 329, 1349, 2100, 1565, 1, 0, 8, 54, 0.8, 0.22], ["2026-08-15 03:45", 45, 186, 156, 16.26, 11.3, 345, 1349, 2100, 1565, 37, 0, 8, 47, 0.88, 0.24], ["2026-08-16 05:03", 45, 186, 158, 16.38, 11.3, 345, 1349, 2100, 1565, 67, 0, 8, 41, 0.9, 0.27], ["2026-08-17 05:18", 46, 186, 169, 16.16, 10.71, 445, 1349, 2100, 1565, 120, 0, 8, 44, 1.16, 0.29], ["2026-08-18 04:24", 49, 186, 136, 13.04, 9.16, 196, 1349, 2100, 1565, 97, 0, 2, 59, 0.01, 0.16], ["2026-08-19 05:37", 51, 186, 176, 17.69, 11.47, 477, 1667, 2317, 2088, 66, 0, 0, 49, 1.33, 0.35], ["2026-08-20 05:40", 52, 196, 176, 17.96, 11.55, 557, 1667, 2317, 2088, 140, 0, 0, 45, 1.36, 0.39], ["2026-08-21 06:04", 71, 205, 82, 14.18, 9.85, 330, 1667, 2317, 2088, 51, 0, 6, 76, 0.33, 0.18], ["2026-08-22 05:05", 117, 205, 82, 13.95, 9.43, 338, 1667, 2317, 2088, 136, 0, 6, 75, 0.35, 0.2], ["2026-08-23 13:14", 121, 205, 179, 18.5, 11.88, 560, 2325, 3257, 2642, 0, 0, 0, 40, 1.42, 0.43], ["2026-08-24 12:25", 122, 205, 199, 18.4, 11.74, 784, 2325, 3257, 2642, 21, 0, 0, 46, 1.37, 0.43], ["2026-09-01 16:59", 123, 222, 222, 19.85, 11.28, 1018, 2325, 5024, 3720, 213, 0, 0, 28, 1.91, 0.47], ["2026-09-02 19:37", 125, 225, 155, 15.1, 9.74, 100, 2325, 5024, 3720, 12, 0, 7, 54, 0.02, 0.25], ["2026-09-03 19:03", 126, 225, 182, 18.66, 11.53, 458, 2325, 5024, 3720, 170, 0, 7, 44, 0.65, 0.39], ["2026-09-04 18:16", 126, 225, 198, 20.59, 11.9, 458, 2325, 5024, 3720, 172, 0, 0, 39, 1.75, 0.58], ["2026-09-05 18:30", 166, 225, 189, 18.18, 11.06, 547, 2325, 5024, 5185, 0, 0, 1, 53, 0.59, 0.38], ["2026-09-06 20:09", 169, 225, 223, 21.93, 12.38, 1671, 2325, 5024, 5368, 0, 0, 0, 44, 2.01, 0.59], ["2026-09-07 19:09", 170, 235, 47, 8.96, 0, 2332, 2325, 5024, 5368, 953, 0, 0, 70, 1.85, 0.32], ["2026-09-08 21:05", 170, 235, 104, 9.69, 0, 2332, 2325, 6159, 5368, 53, 1, 0, 32, 2.1, 0.4], ["2026-09-10 03:55", 170, 235, 112, 9.93, 0, 2332, 2325, 6159, 5368, 53, 1, 0, 30, 2.28, 0.36], ["2026-09-11 02:59", 171, 250, 250, 24.25, 12.84, 2688, 2325, 6159, 6059, 949, 1, 0, 42, 2.35, 0.74], ["2026-09-12 06:32", 172, 255, 234, 24.48, 13.23, 3358, 2325, 6159, 6059, 14, 1, 0, 26, 2.6, 0.8], ["2026-09-13 10:22", 183, 260, 212, 20.38, 12.11, 1091, 2325, 7549, 7467, 876, 1, 12, 81, 0.9, 0.53], ["2026-09-14 09:26", 190, 260, 206, 20.51, 11.26, 1674, 2325, 7549, 9339, 996, 1, 2, 47, 0.85, 0.56], ["2026-09-15 08:38", 193, 268, 268, 26.21, 13.62, 4372, 2325, 9644, 11102, 0, 2, 0, 18, 2.75, 0.93], ["2026-09-16 09:03", 199, 275, 259, 26.24, 13.64, 5826, 2325, 10526, 11102, 30, 2, 0, 25, 2.7, 0.89], ["2026-09-17 17:32", 203, 282, 277, 27.26, 14.04, 6473, 6943, 12392, 14450, 274, 4, 0, 17, 2.75, 0.92], ["2026-09-18 06:20", 203, 282, 277, 27.66, 14.16, 6473, 6943, 12392, 14450, 8, 4, 0, 14, 2.91, 0.93], ["2026-09-19 06:06", 208, 289, 238, 24.59, 13.15, 2541, 6943, 12392, 14450, 249, 4, 5, 36, 1.8, 0.73], ["2026-09-20 07:25", 208, 289, 269, 28.27, 14.45, 6637, 6943, 12392, 15978.000000000002, 183, 4, 0, 16, 2.97, 0.94], ["2026-09-21 07:22", 209, 300, 295, 28.95, 14.35, 8795, 6943, 12392, 15978.000000000002, 12, 4, 0, 9, 3.18, 1.01], ["2026-09-22 07:09", 214, 300, 247, 25.19, 13.96, 3687, 14583, 12392, 24882, 254, 4, 9, 29, 1.18, 0.87], ["2026-09-23 17:17", 222, 303, 264, 25.98, 14.15, 3291, 14583, 12392, 29658.000000000004, 200, 4, 5, 25, 1.3, 0.95], ["2026-09-24 08:37", 222, 303, 264, 26.5, 14.49, 3291, 14583, 12392, 29658.000000000004, 200, 4, 5, 21, 1.44, 0.96], ["2026-09-25 10:25", 222, 303, 291, 31.09, 15.75, 19142, 14583, 12392, 29658.000000000004, 1785, 4, 0, 6, 3.42, 1.1], ["2026-09-26 09:27", 222, 309, 309, 31.69, 16, 19142, 14583, 12392, 29658.000000000004, 2215, 4, 0, 5, 3.63, 1.14], ["2026-09-27 09:06", 222, 309, 309, 31.79, 16.02, 19142, 14583, 12392, 29658.000000000004, 749, 9, 0, 5, 3.61, 1.25], ["2026-09-28 10:13", 223, 312, 298, 31.62, 15.36, 36594, 23608, 12392, 34988, 1756, 9, 0, 8, 3.72, 1.28], ["2026-09-29 09:26", 229, 312, 246, 25.2, 12.99, 3704, 23608, 12392, 34988, 18, 9, 5, 24, 1.25, 0.89], ["2026-09-30 09:40", 231, 312, 284, 30.48, 15.03, 16402, 23608, 12392, 34988, 6337, 9, 5, 11, 3.19, 1.25], ["2026-10-01 08:56", 231, 312, 300, 32.7, 15.75, 36594, 23608, 12392, 34988, 12, 9, 0, 5, 3.85, 1.37], ["2026-10-02 11:44", 231, 312, 310, 33.74, 16.49, 36594, 23608, 12392, 34988, 12, 9, 0, 5, 4.01, 1.39], ["2026-10-03 12:28", 231, 314, 314, 33.96, 16.6, 36594, 51989, 76000, 68570, 10347, 9, 0, 5, 4.06, 1.4], ["2026-10-04 08:09", 232, 317, 317, 34.1, 16.57, 54665, 51989, 76000, 68570, 105, 9, 0, 5, 4.06, 1.38], ["2026-10-04 12:29", 232, 317, 317, 34.17, 16.6, 54665, 51989, 76000, 68570, 105, 9, 0, 5, 4.07, 1.38], ["2026-10-05 12:19", 232, 321, 321, 35.11, 16.73, 54665, 51989, 76000, 68570, 9245, 9, 0, 5, 4.13, 1.39], ["2026-10-06 12:33", 232, 324, 324, 35.3, 16.81, 54665, 51989, 76000, 68570, 1140, 9, 0, 5, 4.17, 1.39], ["2026-10-07 11:34", 233, 324, 300, 33.92, 16.02, 67057, 110801, 76000, 68570, 1140, 9, 0, 23, 3.83, 1.34], ["2026-10-08 10:44", 234, 324, 285, 30.93, 14.82, 104570, 116508, 76000, 68570, 6737, 53, 0, 24, 3.42, 1.08], ["2026-10-09 15:46", 235, 324, 303, 33.83, 15.87, 114329, 116508, 102116, 68570, 3308, 609, 0, 5, 4.08, 1.38], ["2026-10-10 11:40", 235, 324, 305, 33.41, 16.23, 114329, 116508, 102116, 99067, 9400, 713, 0, 5, 3.74, 1.24], ["2026-10-11 04:30", 235, 324, 305, 33.78, 16.27, 114329, 116508, 102116, 99067, 9400, 849, 0, 5, 3.91, 1.27], ["2026-10-12 14:23", 236, 324, 308, 35.08, 16.99, 114329, 116508, 102116, 99067, 9232, 1113, 0, 5, 4.24, 1.33], ["2026-10-13 16:03", 242, 331, 299, 32.02, 16.29, 57252, 116508, 102116, 99067, 37144, 1113, 7, 5, 1.89, 1.36], ["2026-10-14 15:12", 242, 331, 300, 32.56, 16.58, 57252, 116508, 102116, 99067, 48612, 1113, 7, 5, 2.08, 1.37], ["2026-10-15 20:10", 243, 331, 315, 34.02, 17.24, 132538, 146269, 160697, 132795, 40851, 1113, 7, 5, 2.33, 1.46], ["2026-10-16 04:24", 243, 331, 325, 36.7, 17.29, 231115, 146269, 160697, 132795, 45642, 1113, 0, 5, 4.59, 1.51], ["2026-10-16 16:13", 243, 331, 325, 36.92, 17.38, 231115, 146269, 160697, 132795, 54292, 1113, 0, 5, 4.66, 1.51]];
+// v143: History is per-viewer (localStorage), built from the viewer's own imports; no baked-in rows.
+var histData=[]; var histSnaps={};
+(function(){ try{ const raw=localStorage.getItem('wamiHistory'); if(raw){ const o=JSON.parse(raw); if(o&&Array.isArray(o.rows)){ histData=o.rows; histSnaps=o.snaps||{}; } } }catch(e){} })();
+function histSave(){ try{ localStorage.setItem('wamiHistory',JSON.stringify({rows:histData,snaps:histSnaps})); }catch(e){} }
+function histAdd(d){ try{
+  const g=k=>{ const v=d[k]; return v&&v.mantissa!==undefined?v.mantissa*Math.pow(10,v.exponent):(v===undefined?0:v); };
+  const r=odCalc(odV); const t=String(d.SaveTime||d.saveTime||new Date().toISOString()).slice(0,16).replace('T',' ');
+  const row=[t,g('RCRebirthCountCurrent'),g('MaxStageLife'),g('MaxStage'),+Math.log10(Math.max(1,r.off)).toFixed(2),+Math.log10(Math.max(1,g('TrainingDamageBD'))).toFixed(2),Math.round(odV.reinc||0),Math.round(g('ExpManaLimitBD')/1000),g('ExpRefillBonusBD'),g('ExpPowerBonusBD'),Math.round(g('DemonicEssenceBD')),g('PlazaPrestigeCount'),g('CurrentChallenge'),g('TempleBonus'),+Math.log10(Math.max(1e-9,(odV.g2c||100)/100*(odV.g2p||100)/100)).toFixed(2),+Math.log10(Math.max(1e-9,(odV.bSt||100)/100)).toFixed(2)];
+  histData=histData.filter(x=>x[0]!==t); histData.push(row); histData.sort((a,b)=>a[0]<b[0]?-1:1); histSnaps[t]=Object.assign({},odV);
+  histSave(); histRender(); }catch(e){ console.log('histAdd',e); } }
+function histDecompRender(){ const el=document.getElementById('histDecomp'); if(!el) return;
+  const rows=histData.filter(r=>!r[12]&&histSnaps[r[0]]); if(rows.length<2){ el.innerHTML='Import at least two saves (outside challenges) to see this.'; return; }
+  const A=histSnaps[rows[0][0]], B=histSnaps[rows[rows.length-1][0]]; const base=odCalc(B); const lab={}; odIn.forEach(r=>lab[r[0]]=r[1]); const out=[];
+  for(const k of Object.keys(B)){ if(A[k]===undefined||A[k]===B[k]) continue; const V=Object.assign({},B); V[k]=A[k]; const r=odCalc(V); const lo=Math.log10(base.off/r.off); if(isFinite(lo)&&Math.abs(lo)>0.01) out.push([k,A[k],B[k],lo]); }
+  out.sort((a,b)=>b[3]-a[3]); const tot=Math.log10(base.off/odCalc(A).off); const f=v=>{ v=+v; return Math.abs(v)>=1e5||(Math.abs(v)<1e-2&&v!==0)?v.toExponential(2):(+v.toPrecision(4)); };
+  let h=`<div class="label">${rows[0][0]} → ${rows[rows.length-1][0]}: Offense grew by <b>${tot.toFixed(1)}</b> orders of magnitude.</div><table style="width:100%;font-size:13px"><tr><th style="text-align:left">Term</th><th>First</th><th>Latest</th><th>Logs of Offense</th></tr>`;
+  out.slice(0,15).forEach(o=>{ h+=`<tr><td style="text-align:left">${lab[o[0]]||o[0]}</td><td>${f(o[1])}</td><td>${f(o[2])}</td><td>${o[3].toFixed(2)}</td></tr>`; }); el.innerHTML=h+'</table>'; }
 function histRender(){ var t=document.getElementById('histTable'); if(!t) return;
   var hd=['Saved','Rebirths','Best stage','Stage then','Offense (log10)','Training (log10)','Reinc bonus %','Exp Shop limit buys','Refill buys','Power buys','Demonic Essence','Plaza prestiges','In challenge','Temple %','Generator (log10)','Stats boost (log10)'];
   var h='<tr>'+hd.map(function(x){return '<th>'+x+'</th>';}).join('')+'</tr>';
   histData.forEach(function(r){ h+='<tr>'+r.map(function(v,i){ return '<td>'+(i===0?v:(typeof v==='number'?(Math.abs(v)>=1e5?v.toExponential(2):v):v))+'</td>'; }).join('')+'</tr>'; });
-  t.innerHTML=h; }
+  t.innerHTML=histData.length?h:''; const em=document.getElementById('histEmpty'); if(em) em.style.display=histData.length?'none':'block'; try{ histDecompRender(); }catch(e){} }
 histRender();
 function plLoad(d){
   const g=k=>d[k]!==undefined?bdVal(d[k]):undefined;
@@ -5585,6 +5606,7 @@ function importExtra(d, filled){
   if(done.length) filled.push(...done);
 }
 
+var opts_hist_skip=false;
 function processSaveData(d, statusEl){
   const filled = [];
 
@@ -5966,7 +5988,7 @@ function processSaveData(d, statusEl){
     if(d.BattleMagePerma!==undefined) se('sfsBM',bdVal(d.BattleMagePerma));
     if(d.FasterStage1Bonus!==undefined||d.FasterStage2Bonus!==undefined) se('sfsTR',(bdVal(d.FasterStage1Bonus)||0)+(bdVal(d.FasterStage2Bonus)||0));
     if(typeof sfsRender==='function') sfsRender(); }
-  { const odn=odLoad(d); if(odn) filled.push('Offense/Defense builder ('+odn+' terms)'); }
+  { const odn=odLoad(d); if(odn) filled.push('Offense/Defense builder ('+odn+' terms)'); if(odn&&!opts_hist_skip) histAdd(d); }
   { let ifF=0; ifChallenges.forEach(([nm,pr,rw,id],i)=>{ const k='IFChallenge'+(i+1)+'Completion'; if(d[k]!==undefined){ ifCounts[id]=Math.max(0,Math.floor(bdVal(d[k]))); ifF++; } });
     if(ifF){ ifRenderTable(); filled.push('Infinite Challenges ('+ifF+')'); } }
   if (d.synV2Page3Levels && d.synV2Page3Levels._items){
@@ -5992,18 +6014,18 @@ function processSaveData(d, statusEl){
 }
 
 document.getElementById('saveFileInput').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if (!file) return;
+  const files = Array.from(e.target.files||[]);
+  if (!files.length) return;
   const statusEl = document.getElementById('loadStatus');
   statusEl.style.display = 'block';
   statusEl.innerHTML = '<div class="label">Decoding...</div>';
-  try {
-    const text = await file.text();
-    const d = await decodeSaveFile(text);
-    processSaveData(d, statusEl);
-  } catch(err) {
-    statusEl.innerHTML = `<span style="color:var(--warn)">Couldn't decode that save file: ${err.message}</span>`;
-  }
+  const decoded=[], bad=[];
+  for (const file of files){ try { decoded.push({name:file.name, d: await decodeSaveFile(await file.text())}); } catch(err){ bad.push(file.name+': '+err.message); } }
+  decoded.sort((a,b)=>String(a.d.SaveTime||a.d.saveTime||a.name)<String(b.d.SaveTime||b.d.saveTime||b.name)?-1:1);
+  try { decoded.forEach((x,i)=>{ if(i<decoded.length-1){ statusEl.innerHTML=`<div class="label">Adding ${i+1} of ${decoded.length} to History...</div>`; } processSaveData(x.d, statusEl); }); }
+  catch(err) { bad.push(err.message); }
+  if (decoded.length>1) statusEl.innerHTML = `<div class="label">${decoded.length} saves added to History; the newest (${decoded[decoded.length-1].name}) is loaded.</div>` + statusEl.innerHTML;
+  if (bad.length) statusEl.innerHTML += `<div style="color:var(--warn)">Couldn't decode: ${bad.join('; ')}</div>`;
 });
 
 // ---- Spells (Spell/Conjuring - 20 classes, not interchangeable) ----
