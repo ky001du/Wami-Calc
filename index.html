@@ -112,7 +112,7 @@ td,th{overflow-wrap:anywhere;}
 </head>
 <body>
 <div class="wrap">
-  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v164 · 2026-10-21</span></h1>
+  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v165 · 2026-10-21</span></h1>
   <div id="saveBanner">The numbers on this page are <b>example values</b>, not your game. Load your save (Load Save tab, the first one) to replace them with yours.</div>
   <p class="sub">Formulas pulled directly from the game's compiled code + your save. Covers what's been fully verified so far — more tabs get added as more systems get decoded.</p>
 
@@ -955,7 +955,7 @@ Past 331 the stand-ins are extrapolated, so the table stops there. Not simulated
     <div class="card">
       <h2>Summoning building cost &amp; output</h2>
       <p class="note">Building cost = round( (base × (owned+1)) ^ (1 + owned/200) ), paid in Hell Mana. Rate = owned × (1 + summonLevel/20) × your combined Summon Bonus multiplier (one input below — it folds in talents, achievements, mood, and class bonuses that aren't individually modeled here) ÷ relative summon time, where summon time shrinks by (1 − summonSpeed/50) (speed level caps at 45, i.e. up to 10× faster). Summon Level and Summon Speed are upgraded per-building from BattlefieldHellSpiritShop, paid in <b>Hell Spirit</b> (not Hell Mana) — cost = round( (base × (level+1)) ^ (1 + level/div) ), levelBase=[200,800,3200,12800,51600] div=200, speedBase=[1000,4000,16000,64000,256000] div=100.</p>
-      <div class="row"><label>Combined Summon Bonus multiplier <span style="color:var(--sub)">(auto-filled from a save — partial, see note)</span></label><input type="number" id="bfSmnBonus" value="1" step="0.01" min="0"></div>
+      <div class="row"><label>Combined Summon Bonus multiplier <span style="color:var(--sub)">(auto-filled from a save, see note)</span></label><input type="number" id="bfSmnBonus" value="1" step="0.01" min="0"></div>
       <div class="upgrade-grid" id="bfBuildGrid"></div>
       <div class="gap-note">Triple-summon proc chance isn't modeled — rate shown is the non-triple baseline. Necromancer's price-discount bonus and Time Warp's summon-speed boost aren't factored into the shown costs/rate. Loading a save auto-fills this field from the 4 of ~8 terms that are save-backed (BF Building Summon Qty perk, Atomos level, Necromancer talent, Trophy bonuses) — Classes Perma buffs, Generator's Pull bonus, and Waifu mood aren't included, so the real in-game value may be somewhat higher. Edit it by hand if you know the true number.</div>
     </div>
@@ -1079,12 +1079,12 @@ Past 331 the stand-ins are extrapolated, so the table stops there. Not simulated
     <div class="card">
       <h2>Perk points from prestiging now</h2>
       <p class="note">Weighted by building tier: Hell Well/Aqueduct ×1, Arena/Commando Post ×2, Magic Circle/Genetic Lab ×4, Dwarven Workshop/Adventurers Guild ×6, Trainings Dummy/Scout Camp ×10. (Ancient Library and Demon Market are NOT reset by prestige and don't count here.)</p>
-      <div class="row"><label>Perk Points per prestige bonus chain <span style="color:var(--sub)">(auto-filled from a save — partial, see note)</span></label><input type="number" id="pzpMulti" value="1" step="0.01" min="0"></div>
+      <div class="row"><label>Perk Points per prestige bonus chain <span style="color:var(--sub)">(auto-filled from a save, see note)</span></label><input type="number" id="pzpMulti" value="1" step="0.01" min="0"></div>
       <div class="result">
         <div class="label">Perk Points gained if you prestige Plaza right now</div>
         <div class="big" id="pzpGainOut">—</div>
       </div>
-      <div class="gap-note">Reads building levels from the Plaza tab. The real formula (PlazaPrestige.PerksBonus) multiplies the base amount by 15 bonus terms total. Loading a save auto-fills this field from the 3 that are save-backed (Hell Spirit shop's Plaza Perk item, Plaza Perk page 1's "Perk Bonus I", and the 29-perk list's "Bonus Perk") — the other 12 (Classes Perma, Synergy, Waifu, Generator's Pull bonus, Trophy, and Reincarnation Atomos/Pomos bonuses) aren't included, so the real multiplier is likely higher than what's shown. Edit it by hand if you know the true number.</div>
+      <div class="gap-note">Reads building levels from the Plaza tab. Perk Points gained = (Hell Well + Aqueduct + 2×(Arena + Commando Post) + 4×(Magic Circle + Genetic Lab) + 6×(Dwarven Workshop + Adventurers Guild) + 10×(Trainings Dummy + Scout Camp)) × the bonus chain (PlazaPrestige.PerksBonus). Loading a save fills the chain from every save-backed term: Hell Spirit shop Plaza Perk, Perk Bonus I, Plaza page 3 Bonus Perk, the Perks trophies, cooking row 6, Alchemy and slime bonus 35, gear Perk Bonus, Perks Dump, Pomos and Arena. Two terms are not in the save: the cooking line 18 buff (only while that dish is active) and the Perks potion (only while it is running). If either is active, multiply them in by hand.</div>
     </div>
 
     <div class="card" id="prpCard">
@@ -5825,7 +5825,7 @@ function slimeCalc(d){
 }
 function synImport(d){ const g=k=>(d[k]!==undefined&&d[k]!==null)?(bdVal(d[k])||0):0; const bh=(d.blackHoleLevel&&d.blackHoleLevel._items)?d.blackHoleLevel._items.map(x=>bdVal(x)||0):(Array.isArray(d.blackHoleLevel)?d.blackHoleLevel.map(x=>+x||0):[]);
   const set=(id,v)=>{ const e=document.getElementById(id); if(e&&isFinite(v)) e.value=+(+v).toPrecision(8); }; set('alSym',g('Layer21Bonus')); set('alBH',bh[3]||0); try{ if(typeof alCalc==='function') alCalc(); }catch(e){} }
-function slimeImport(d){ try{ synImport(d); const S=slimeCalc(d); window.saveSlimes=S; const f=id=>S.eff[id]!==undefined?S.eff[id]:1;
+function slimeImport(d){ try{ synImport(d); const S=slimeCalc(d); window.saveSlimes=S; const f=id=>S.eff[id]!==undefined?S.eff[id]:1; { const k=f(35)*((typeof alValue==='function'&&typeof alMixes!=='undefined')?alValue(35,alMixes[35]||0):1); if(k>0&&k!==1) ['pzpMulti','prp_mult'].forEach(id=>{ const e=document.getElementById(id); const v=parseFloat(e&&e.value); if(e&&v>0) e.value=+(v*k).toPrecision(8); }); try{ if(typeof recalcPzp==='function') recalcPzp(); }catch(e){} } /* PlazaPrestige.PerksBonus: GetBonusMultiMood(35) x GetBonusValue(35) */
     if(typeof odSet==='function'){ odSet('mood9',f(9)); if(typeof odRender==='function') odRender(); }
     if(typeof bmP!=='undefined'&&typeof alValue==='function'&&typeof alMixes!=='undefined'){ const hm=f(20)*alValue(20,alMixes[20]||0); window.slimeHM={slime:f(20),alch:alValue(20,alMixes[20]||0),old:bmP.mood}; if(window.saveGear){ bmP.mood=hm; const e=document.getElementById('bm_mood'); if(e) e.value=+hm.toPrecision(6); if(typeof bmRender==='function') bmRender(); } }
     slimeRender(); }catch(e){ console.log('slimeImport',e); } }
@@ -6000,7 +6000,10 @@ function processSaveData0(d, statusEl){
   // v135: also the two Perks trophies (Perks10/Perks30, additive: x(1+0.1+0.3)) and cooking row 6 perma (x(1+Row6Perma)), both in PlazaPrestige.PerksBonus
   const perkTro = 1 + (d.Perks10Bonus!==undefined?bdVal(d.Perks10Bonus):0) + (d.Perks30Bonus!==undefined?bdVal(d.Perks30Bonus):0);
   const cookRow6 = 1 + (d.Row6Perma!==undefined?bdVal(d.Row6Perma):0);
-  const pzpMultiPartial = (1 + hsPlazaPerkLvl/20) * (1 + perkBonusILvl/100) * (1 + page3Perk6Lvl*0.05) * perkTro * cookRow6;
+  // v165: also Perks Dump (PerksDumpBonusBD x PerksDumpBonusAscendBD), Pomos (1.005^PomosPerkLevel) and Arena (1+ABPerksBonus); slime and Alchemy bonus 35 are applied in slimeImport, gear PerkBonus in gearImport
+  const perkDump = (d.PerksDumpBonusBD!==undefined?(bdVal(d.PerksDumpBonusBD)||1):1) * (d.PerksDumpBonusAscendBD!==undefined?(bdVal(d.PerksDumpBonusAscendBD)||1):1);
+  const perkPomos = Math.pow(1.005, d.PomosPerkLevel!==undefined?bdVal(d.PomosPerkLevel):0) * (1 + (d.ABPerksBonus!==undefined?bdVal(d.ABPerksBonus):0));
+  const pzpMultiPartial = (1 + hsPlazaPerkLvl/20) * (1 + perkBonusILvl/100) * (1 + page3Perk6Lvl*0.05) * perkTro * cookRow6 * perkDump * perkPomos;
   document.getElementById('pzpMulti').value = pzpMultiPartial.toFixed(4);
   try{ prpFill(d); }catch(e){ console.log('prpFill',e); }
   filled.push('Perk Points bonus chain multiplier (partial - known terms only, see gap-note)');
