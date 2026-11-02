@@ -112,7 +112,7 @@ td,th{overflow-wrap:anywhere;}
 </head>
 <body>
 <div class="wrap">
-  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v200 · 2026-11-02</span></h1>
+  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v208 · 2026-11-02</span></h1>
   <div id="saveBanner">The numbers on this page are <b>example values</b>, not your game. Load your save (Load Save tab, the first one) to replace them with yours.</div>
   <p class="sub">Formulas pulled directly from the game's compiled code + your save. Covers what's been fully verified so far — more tabs get added as more systems get decoded.</p>
 
@@ -141,7 +141,7 @@ td,th{overflow-wrap:anywhere;}
     <option value="soul">Soul Shop</option>
     <option value="bf">Battlefield</option>
     <option value="exp">Exp Shop</option>
-    <option value="pzp">Plaza Prestige</option>
+    <option value="pzp">Plaza Planner</option>
     <option value="spell">Conjuring</option>
     <option value="truespell">Spell</option>
     <option value="advitems">Adventure Items</option>
@@ -710,7 +710,7 @@ td,th{overflow-wrap:anywhere;}
         <input type="number" id="tadMLAtk" value="0" min="0" step="0.0001" style="width:48%;"> / <input type="number" id="tadMLDef" value="0" min="0" step="0.0001" style="width:48%;">
       </div>
       <div class="row"><label>Challenges: ChallengeAdvBonus <span style="color:var(--sub);">(from the Challenges tab above, or completions × 2)</span></label><input type="number" id="tadChallenge" value="0" min="0" step="0.1"></div>
-      <div class="row"><label>Plaza Prestige: MinionAtkPerkI / MinionDefPerkI level <span style="color:var(--sub);">(from the Plaza Prestige tab's Minion Attack/Defense perk)</span></label>
+      <div class="row"><label>Plaza Prestige: MinionAtkPerkI / MinionDefPerkI level <span style="color:var(--sub);">(from the Plaza Planner tab's Minion Attack/Defense perk)</span></label>
         <input type="number" id="tadPPAtk" value="0" min="0" step="1" style="width:48%;"> / <input type="number" id="tadPPDef" value="0" min="0" step="1" style="width:48%;">
       </div>
       <div class="row"><label>Arena Shop: ATMinionStats level <span style="color:var(--sub);">(auto-filled from the Arena Shop tab's "Minion Atk &amp; Def" row)</span></label><input type="number" id="tadArena" value="0" min="0" step="1" readonly style="background:var(--panel2,rgba(255,255,255,0.03));"></div>
@@ -813,7 +813,7 @@ td,th{overflow-wrap:anywhere;}
     </div>
     <div class="card">
       <h2>Hell Spirit shop</h2>
-      <p class="note">6 upgrades, paid in Hell Spirit. Training Efficiency uses a different formula.</p>
+      <p class="note">6 upgrades, paid in Hell Spirit. Spell Efficiency (+100% spell base per level) uses a different cost formula.</p>
       <div class="upgrade-grid" id="bfHsGrid"></div>
       <div class="gap-note">Necromancer price discount and Time Warp summon speed are not applied.</div>
     </div>
@@ -832,7 +832,7 @@ td,th{overflow-wrap:anywhere;}
     </div>
     <div class="card">
       <h2>Demonic Upgrade shop (16 items)</h2>
-      <p class="note">cost = round((base^(1+level/div) × (1 − BFPricePerkI/100)) ^ (1 − NecromancerLowSumBonus)), paid in Demonic Essence. Training Efficiency instead uses (3^level × 100 × (1 − BFPricePerkI/100))^(1 − NecromancerLowSumBonus), unrounded.</p>
+      <p class="note">cost = round((base^(1+level/div) × (1 − BFPricePerkI/100)) ^ (1 − NecromancerLowSumBonus)), paid in Demonic Essence. Spell Efficiency instead uses (3^level × 100 × (1 − BFPricePerkI/100))^(1 − NecromancerLowSumBonus), unrounded.</p>
       <div class="row"><label>Necromancer Low-Sum Bonus (talent, 0 if not using)</label><input type="number" id="bfNecroLowSum" value="0" min="0" max="1" step="0.01"></div>
       <div class="upgrade-grid" id="bfDemGrid"></div>
     </div>
@@ -875,7 +875,6 @@ td,th{overflow-wrap:anywhere;}
       <p class="note">The first table assumes Town is fully built, but reincarnation resets every Town building to level 0. This table spends the gold from your best clearable stage on the cheapest next Town level (up to your current levels) and shows the effect on Offense, Defense and monster strength.</p>
       <table id="clRec2"></table>
       <div id="clRec2Note" class="note"></div>
-      <p class="note">Whether and when to reincarnate is simulated on the Playthrough Simulator tab.</p>
       <div id="clRecNote" class="note"></div>
     </div>
   </div>
@@ -929,9 +928,10 @@ td,th{overflow-wrap:anywhere;}
 
   </div>
 
-  <!-- PLAZA PRESTIGE -->
+  <!-- PLAZA PLANNER -->
   <div class="panel" id="pzp">
-    <div class="card">
+    <div class="card" style="padding-bottom:6px"><div class="row"><label>Goal</label><select id="pzGoal"><option value="ratio">Ratios for auto-prestige (fastest Plaza)</option><option value="perk">Perk goal with baby demons</option><option value="reinc">Reincarnation bonus</option><option value="now">Perks from prestiging now</option><option value="shop">Spend perks (perk shops)</option></select></div></div>
+    <div class="card" data-pz="now" style="display:none">
       <h2>Perk points from prestiging now</h2>
       <p class="note">Weighted by tier: Hell Well/Aqueduct ×1, Arena/Commando Post ×2, Magic Circle/Genetic Lab ×4, Dwarven Workshop/Adventurers Guild ×6, Trainings Dummy/Scout Camp ×10. Ancient Library and Demon Market are not reset by prestige and don't count.</p>
       <div class="row"><label>Perk Points per prestige bonus chain <span style="color:var(--sub)">(auto-filled from a save, see note)</span></label><input type="number" id="pzpMulti" value="1" step="0.01" min="0"></div>
@@ -942,9 +942,12 @@ td,th{overflow-wrap:anywhere;}
       <div class="gap-note">Perk Points = (Hell Well + Aqueduct + 2×(Arena + Commando Post) + 4×(Magic Circle + Genetic Lab) + 6×(Dwarven Workshop + Adventurers Guild) + 10×(Trainings Dummy + Scout Camp)) × bonus chain. Building levels come from the Plaza tab, and a save fills the chain. Two terms are not in the save: the cooking line 18 buff (only while that dish is active) and the Perks potion (only while running). Multiply them in by hand if active.</div>
     </div>
 
-    <div class="card" id="prpCard">
+    <div class="card" id="prpCard" data-pz="ratio">
       <h2>Plaza ratio planner</h2>
-      <p class="note">Planner for auto-prestige. Each prestige rebuilds tiers 1-5 to your ratio (each tier needs both buildings of the tier below at 5; tier 5 needs 2 to prestige). A building's mana cost is paid from next-life mana first, and any remainder comes from your mana bar and permanently burns mana cap. Auto-build only takes from the bar when it holds enough, otherwise it waits. Next-life mana grows each refill by mana created ÷ the <code>+1 per ...</code> number = (cap + next-life mana) ÷ (step × mana-cap-rate bonus). The step falls (15, 7.5, 3, 1, 0.5, 0.25) as cap + next-life mana passes 2.5e10, 5e10, 1e11, 2.5e11, 5e11, and Aqueduct multiplies it by 1 + level/20. The planner compares income and spending per hour, names the bottleneck, and finds the ratio with the most perks per hour that still fits. A save fills almost everything; type the three mana tooltip numbers, which the save doesn't hold.</p>
+      <details style="margin:4px 0 8px"><summary style="cursor:pointer;color:var(--sub)">How this works</summary><p class="note">Planner for auto-prestige. Each prestige rebuilds tiers 1-5 to your ratio (each tier needs both buildings of the tier below at 5; tier 5 needs 2 to prestige). A building's mana cost is paid from next-life mana first, and any remainder comes from your mana bar and permanently burns mana cap. Auto-build only takes from the bar when it holds enough, otherwise it waits. Next-life mana grows each refill by mana created ÷ the <code>+1 per ...</code> number = (cap + next-life mana) ÷ (step × mana-cap-rate bonus). The step falls (15, 7.5, 3, 1, 0.5, 0.25) as cap + next-life mana passes 2.5e10, 5e10, 1e11, 2.5e11, 5e11, and Aqueduct multiplies it by 1 + level/20. The planner compares income and spending per hour, names the bottleneck, and finds the ratio with the most perks per hour that still fits. A save fills almost everything; type the three mana tooltip numbers, which the save doesn't hold.</p></details>
+      <div class="result"><div id="prpOut">Load a save, then paste the mana tooltip numbers.</div></div>
+      <div class="gap-note">Gathers per second per track = demons × speed / 30,000. Logs per gather = (1 + level/2 + gear log) × resource bonus; ore = ore chance × (1 + level/5 + gear ore) × bonus; gems = gem chance × (1 + level/10 + gear gem) × bonus. Next-life mana grows by mana per refill ÷ (mana per +1 cap) each refill. Costs use the Plaza tab's formulas with your Building upgrade and price perk. Includes the Gather Res ×5 perk chance (page 2). Not included: anything that changes during a cycle.</div>
+      <details style="margin:8px 0"><summary style="cursor:pointer;color:var(--sub)">Inputs (mostly filled from your save)</summary>
       <h3>Mana (hover the mana bar in game)</h3>
       <div class="row"><label>Mana per refill with all buildings at your targets (read just before a prestige)</label><input type="text" id="prp_mpr" placeholder="e.g. 1.366e16"></div>
       <div class="row"><label>Mana per refill right after a prestige, all buildings at 0 (optional; makes the rebuild simulation exact)</label><input type="text" id="prp_mpr0" placeholder="e.g. 4.495e15"></div>
@@ -986,44 +989,54 @@ td,th{overflow-wrap:anywhere;}
       <div class="row"><label>Aqueduct level when you read the "+1 per" number (save-filled from the save's Aqueduct level; Aqueduct multiplies the next-life mana rate by 1 + level/20)</label><input type="number" id="prp_aq" value="0"></div>
       <div class="row"><label>Stockpile per track: logs / ore / gems</label><span style="display:flex;gap:6px"><input type="text" id="prp_slog" value="0" style="width:33%"><input type="text" id="prp_sore" value="0" style="width:33%"><input type="text" id="prp_sgem" value="0" style="width:33%"></span></div>
       <div class="row"><label>Spend stockpiles over this many hours (0 = endless engine, income only)</label><input type="number" id="prp_hrs" value="0" min="0"></div>
-      <h3>Perk goal (e.g. Plaza Save, 5M) with baby demons on Plaza Perk</h3>
+      </details>
+    </div>
+    <div class="card" id="prpPerkCard" data-pz="perk" style="display:none">
+      <h2>Perk goal, with baby demons on Plaza Perk</h2>
+      <div class="result"><div id="prpPG">—</div></div>
       <div class="row"><label>Perk goal / perks banked now</label><span style="display:flex;gap:6px"><input type="text" id="prp_pgoal" value="5e6" style="width:50%"><input type="text" id="prp_pbank" value="0" style="width:50%"></span></div>
       <div class="row"><label>Lifetime perks from Plaza prestiges (save-filled; baby demons pay 1 per 1,000 of this per fill)</label><input type="text" id="prp_ptot" value="0"></div>
       <div class="row"><label>Baby demons on Plaza Perk / Perk Bonus I level</label><span style="display:flex;gap:6px"><input type="number" id="prp_bab" value="0" style="width:50%"><input type="number" id="prp_pbi" value="0" style="width:50%"></span></div>
       <div class="row"><label>"Gain X Plaza Perk every completion" from the baby tooltip (blank = estimate) / baby speed × (cooking row 8, trophies; 1 = none)</label><span style="display:flex;gap:6px"><input type="text" id="prp_bgain" placeholder="e.g. 1140" style="width:50%"><input type="number" id="prp_bspd" value="1" step="0.01" style="width:50%"></span></div>
-      <div class="result"><div id="prpPG">—</div></div>
-      <h3>Reincarnation bonus to beat (auto-filled: 25% above the bonus you hold)</h3>
+    </div>
+    <div class="card" id="prpReincCard" data-pz="reinc" style="display:none">
+      <h2>Reincarnation bonus to beat <span style="font-weight:400;color:var(--sub);">(auto-filled: 25% above the bonus you hold)</span></h2>
+      <div class="result"><div id="prpRB">—</div></div>
+      <details style="margin:8px 0"><summary style="cursor:pointer;color:var(--sub)">Inputs (save-filled)</summary>
       <div class="row"><label>Bonus to reach</label><input type="text" id="prp_rbT" value="1e6"></div>
       <div class="row"><label>This life: highest stage / mana spent on conjuring / meditation level (Reincarnate screen)</label><span style="display:flex;gap:6px"><input type="number" id="prp_lst" value="331" style="width:33%"><input type="text" id="prp_lcj" value="4e13" style="width:33%"><input type="number" id="prp_lmd" value="466" style="width:33%"></span></div>
       <div class="row"><label>M right now = red stage bonus % ÷ (stage ÷ 3), from the Reincarnate screen (blank = estimate from save)</label><input type="text" id="prp_M" placeholder="e.g. 268"></div>
       <div class="row"><label>Save levels now: Adventurers Guild / Dwarven Workshop / Ancient Library (save-filled)</label><span style="display:flex;gap:6px"><input type="number" id="prp_adv" value="0" style="width:33%"><input type="number" id="prp_dw" value="0" style="width:33%"><input type="number" id="prp_al" value="0" style="width:33%"></span></div>
       <div class="row"><label>Generator 8 (Reincarnation) bonus before the Dwarven multiplier: current % / permanent % (save-filled)</label><span style="display:flex;gap:6px"><input type="number" id="prp_g8c" value="0" style="width:50%"><input type="number" id="prp_g8p" value="0" style="width:50%"></span></div>
-      <div class="result"><div id="prpRB">—</div></div>
-      <div class="result"><div id="prpOut">Load a save, then paste the mana tooltip numbers.</div></div>
-      <div class="gap-note">Gathers per second per track = demons × speed / 30,000. Logs per gather = (1 + level/2 + gear log) × resource bonus; ore = ore chance × (1 + level/5 + gear ore) × bonus; gems = gem chance × (1 + level/10 + gear gem) × bonus. Next-life mana grows by mana per refill ÷ (mana per +1 cap) each refill. Costs use the Plaza tab's formulas with your Building upgrade and price perk. Includes the Gather Res ×5 perk chance (page 2). Not included: anything that changes during a cycle.</div>
+      </details>
     </div>
 
-    <div class="card">
+    <div class="card" data-pz="shop" style="display:none" id="pzShopSum">
+      <h2>Perk shop: current and next purchases</h2>
+      <div class="row"><label><input type="checkbox" id="pzHideMax" checked> Hide maxed upgrades in the lists below</label></div>
+      <div id="pzShopOut" class="note">Load a save to see your perk shop.</div>
+    </div>
+    <div class="card" data-pz="shop" style="display:none">
       <h2>29 permanent perks</h2>
       <p class="note">cost = round(pow × (level+1) ^ (1 + level/div)), paid in Perk Points.</p>
       <div class="row"><label>Current Perk Points banked</label><input type="number" id="pzpBanked" value="0" min="0"></div>
       <div class="upgrade-grid" id="pzpGrid"></div>
     </div>
 
-    <div class="card">
+    <div class="card" data-pz="shop" style="display:none">
       <h2>Perk shop Page 1 (73 items)</h2>
       <p class="note">Unit-boost tiers (gated by Battlefield unlock thresholds), single-stat perks and one-time unlocks, all paid in Perk Points. Only cost and cap are modeled; use the in-game tooltip for the effect size.</p>
       <div class="upgrade-grid" id="pzp1Grid"></div>
       <div class="gap-note">II tiers need their I tier owned first. I tiers also need a Battlefield unit-bought or highest-wave threshold, which is not checked here; the in-game buy button will tell you.</div>
     </div>
 
-    <div class="card">
+    <div class="card" data-pz="shop" style="display:none">
       <h2>Perk shop Page 2 (30 items)</h2>
       <p class="note">10 stats × 3 tiers (Gold, Exp, Gather Exp, Gather Res, Pet Food, Pet Point, Mana Ref, Hell Mana Ref, Spirit Ref, Hell Spirit Ref). Tier I is a one-time unlock, II has linear cost, III has exponential cost and needs the previous tier. All paid in Perk Points.</p>
       <div class="upgrade-grid" id="pzp2Grid"></div>
     </div>
 
-    <div class="card">
+    <div class="card" data-pz="shop" style="display:none">
       <h2>Perk shop Page 4 (14 items)</h2>
       <p class="note">Exponential-cost repeatables, cost = base × growth^level, each with a flat effect per level. Paid in Perk Points.</p>
       <div class="upgrade-grid" id="pzp4Grid"></div>
@@ -1092,7 +1105,7 @@ td,th{overflow-wrap:anywhere;}
 
     <div class="card">
       <h2>Battlefield Demonic Upgrade: % gain per Demonic Essence</h2>
-      <p class="note">Value/cost for 14 of 16 items. Most are a direct ×(1+level/N) term. Training Efficiency is ×(level+1), so it is usually the best early buy. Gathering Exp adds +2 per level in a sum with Barn (×3 per level), Bobbidi (×2 per level) and a base of 1, so it is ranked only once a save is loaded.</p>
+      <p class="note">Value/cost for 14 of 16 items. Most are a direct ×(1+level/N) term. Spell Efficiency is ×(level+1), so it is usually the best early buy. Gathering Exp adds +2 per level in a sum with Barn (×3 per level), Bobbidi (×2 per level) and a base of 1, so it is ranked only once a save is loaded.</p>
       <div id="recBfDemOut"></div>
       <div class="gap-note">Not ranked: Building Cost, Gathering Cost, Wave HP and Reset Timer. Building Cost is Plaza's dub discount input, Gathering Cost lowers the Plaza Log cost, and Wave HP and Reset Timer give a flat -2% per level (shown in their own tabs).</div>
     </div>
@@ -1238,6 +1251,10 @@ function fmtEff(v){
 })();
 
 // ---- tabs (dropdown) ----
+(function(){ const g=document.getElementById('pzGoal'); if(!g) return;
+  function show(){ const v=g.value; document.querySelectorAll('#pzp [data-pz]').forEach(x=>{ x.style.display = x.getAttribute('data-pz')===v ? '' : 'none'; }); try{localStorage.setItem('wamiPzGoal',v);}catch(e){} }
+  try{ const sv=localStorage.getItem('wamiPzGoal'); if(sv && g.querySelector('option[value="'+sv+'"]')) g.value=sv; }catch(e){}
+  g.addEventListener('change',show); show(); window.pzGoalShow=show; })();
 document.getElementById('tabSelect').addEventListener('change', (e)=>{
   document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
   document.getElementById(e.target.value).classList.add('active');
@@ -1579,8 +1596,8 @@ const hsItems = [
   {name:'Wave HP', base:2500, scale:150},
   {name:'Reset Timer', base:6000, scale:100},
   {name:'Mana Cap Rate', base:3000, scale:200},
-  {name:'Training Efficiency', base:3, scale:5000, special:true},
-  {name:'Ancestry Exp', base:3000, scale:150},
+  {name:'Spell Efficiency', base:3, scale:5000, special:true},
+  {name:'Training Exp', base:3000, scale:150},
   {name:'Plaza Perk', base:7500, scale:200},
 ];
 const hsGrid = document.getElementById('bfHsGrid');
@@ -1699,16 +1716,16 @@ const bfDemItems = [
   {name:'Building Cost', base:3, div:7.9},
   {name:'Wave HP', base:15, div:12.0},
   {name:'Reset Timer', base:20, div:13.0},
-  {name:'Demonic Essence', base:10, div:14.6},
+  {name:'Essence', base:10, div:14.6},
   {name:'Gold', base:10, div:14.6},
-  {name:'Exp', base:20, div:18.6},
+  {name:'EXP', base:20, div:18.6},
   {name:'Meditation', base:20, div:18.6},
-  {name:'Dungeon', base:20, div:18.6},
+  {name:'Dungeon Damage', base:20, div:18.6},
   {name:'Gathering Cost', base:25, div:19.8},
-  {name:'Gathering Exp', base:50, div:23.8},
+  {name:'Gathering EXP', base:50, div:23.8},
   {name:'Gathering Speed', base:50, div:24.5},
-  {name:'Mana Rate', base:75, div:26.0},
-  {name:'Training Efficiency', base:3, special:true},
+  {name:'Mana Cap Rate', base:75, div:26.0},
+  {name:'Spell Efficiency', base:3, special:true},
 ];
 const bfDemGrid = document.getElementById('bfDemGrid');
 bfDemItems.forEach((it,i)=>{
@@ -2080,14 +2097,14 @@ function prpCalc(){
 function prpPG(cur,res){ window.prpPGres=null; const el=document.getElementById('prpPG'); if(!el) return;
   const goal=prpNum('prp_pgoal')||5e6, bank=prpNum('prp_pbank'), tot0=prpNum('prp_ptot'), bab=prpNum('prp_bab'), pbi=prpNum('prp_pbi'), bspd=prpNum('prp_bspd')||1;
   const gIn=prpNum('prp_bgain'); const boost=(gIn>0&&tot0>0)?gIn/(tot0/1000*(1+pbi/100)):1; const fillsH=bab*bspd*50*3600/100000;
-  const run=(pph,pbiL,extraCost)=>{ let b=bank-(extraCost||0), tot=tot0, t=0; const pm=(1+pbiL/100)/(1+pbi/100); while(b<goal&&t<24*365){ const dt=0.25; const babyH=fillsH*Math.round(tot/1000*(1+pbiL/100)*boost); b+=(pph*pm+babyH)*dt; tot+=pph*pm*dt; t+=dt; } return t; };
+  const run=(pph,pbiL,extraCost,gg)=>{ const G=gg===undefined?goal:gg; let b=bank-(extraCost||0), tot=tot0, t=0; const pm=(1+pbiL/100)/(1+pbi/100); while(b<G&&t<24*365){ const dt=0.25; const babyH=fillsH*Math.round(tot/1000*(1+pbiL/100)*boost); b+=(pph*pm+babyH)*dt; tot+=pph*pm*dt; t+=dt; } return t; };
   const fmtT=t=>t>=24*365?'over a year':(t<48?t.toFixed(1)+' h':(t/24).toFixed(1)+' days');
   const babyNow=fillsH*Math.round(tot0/1000*(1+pbi/100)*boost);
   const rows=[['Your ratio '+cur.R.join(' | '),cur.pph],['Best ratio in the table above ('+res[0].R.join(' | ')+')',res[0].pph],['No prestiging (babies only)',0]];
-  let h=`<div class="label">Baby demons now: ${fmtBig(Math.round(fillsH*10)/10)} fills/hour × ${fmtBig(Math.round(tot0/1000*(1+pbi/100)*boost))} = <b>${fmtBig(Math.round(babyNow))} perks/hour</b>, and every 1,000 prestige perks adds ${(fillsH*(1+pbi/100)*boost).toFixed(1)}/hour more. ${fmtBig(goal-bank)} to go.</div><table style="width:100%;font-size:13px;margin-top:4px"><tr><th style="text-align:left">Plan</th><th>Prestige perks / hour</th><th>Time to ${fmtBig(goal)}</th></tr>`;
-  rows.forEach(r=>{ h+=`<tr><td style="text-align:left">${r[0]}</td><td>${fmtBig(Math.round(r[1]))}</td><td>${fmtT(run(r[1],pbi))}</td></tr>`; }); h+=`</table>`;
-  const best=Math.max(cur.pph,res[0].pph), c=7500*(1+pbi), tA=run(best,pbi), tB=run(best,pbi+1,c), rate=best+babyNow, gain=rate/(1+pbi/100)/100;
-  h+=`<div class="note" style="margin-top:6px">Perk Bonus I level ${pbi+1} costs ${fmtBig(c)} for +${fmtBig(Math.round(gain))} perks/hour (pays back in ~${fmtT(c/gain)}). Buying it now: goal in ${fmtT(tB)} instead of ${fmtT(tA)}, so <b>${tB<tA?'buy it':'wait until after the goal'}</b>. Every perk spent before the goal delays it by the same amount.</div>`;
+  let h=`<div class="label">Baby demons now: ${fmtBig(Math.round(fillsH*10)/10)} fills/hour × ${fmtBig(Math.round(tot0/1000*(1+pbi/100)*boost))} = <b>${fmtBig(Math.round(babyNow))} perks/hour</b>, and every 1,000 prestige perks adds ${(fillsH*(1+pbi/100)*boost).toFixed(1)}/hour more. ${goal>bank?fmtBig(goal-bank)+' to go.':'Your goal is already banked, so the table shows the time to earn more on top of it (or set a higher goal above).'}</div><table style="width:100%;font-size:13px;margin-top:4px"><tr><th style="text-align:left">Plan</th><th>Prestige perks / hour</th>${goal>bank?`<th>Time to ${fmtBig(goal)}</th>`:[1e7,5e7,2.5e8].map(x=>`<th>Time to earn ${fmtBig(x)} more</th>`).join('')}</tr>`;
+  rows.forEach(r=>{ h+=`<tr><td style="text-align:left">${r[0]}</td><td>${fmtBig(Math.round(r[1]))}</td>${goal>bank?`<td>${fmtT(run(r[1],pbi))}</td>`:[1e7,5e7,2.5e8].map(x=>`<td>${fmtT(run(r[1],pbi,0,bank+x))}</td>`).join('')}</tr>`; }); h+=`</table>`;
+  const best=Math.max(cur.pph,res[0].pph), c=7500*(1+pbi), gE=goal>bank?goal:bank+5e7, tA=run(best,pbi,0,gE), tB=run(best,pbi+1,c,gE), rate=best+babyNow, gain=rate/(1+pbi/100)/100;
+  h+=`<div class="note" style="margin-top:6px">Perk Bonus I level ${pbi+1} costs ${fmtBig(c)} for +${fmtBig(Math.round(gain))} perks/hour (pays back in ~${fmtT(c/gain)}). Buying it now: ${goal>bank?'goal':'the next '+fmtBig(5e7)+' perks'} in ${fmtT(tB)} instead of ${fmtT(tA)}, so <b>${tB<tA?'buy it':'wait until after the goal'}</b>. Every perk spent before the goal delays it by the same amount.</div>`;
   if(gain>0&&pbi<200){ const lv=H=>{ let n=pbi; while(n<200&&7500*(1+n)/gain<=H) n++; return n; }; const tot=(n)=>{ let c0=0; for(let k=pbi;k<n;k++) c0+=7500*(1+k); return c0; };
     h+=`<div class="label" style="margin-top:8px">When to buy Perk Bonus I (level ${pbi}/200, +1% per level to prestige and baby perks)</div><div class="note">Each level adds about ${fmtBig(Math.round(gain))} perks/hour and level ${pbi+1} costs ${fmtBig(c)}, so it pays itself back in <b>${fmtT(c/gain)}</b>. Cost rises by 7,500 every level while the gain stays about the same, so payback gets longer with each level (level ${pbi+10}: ${fmtT(7500*(1+pbi+9)/gain)}, level ${pbi+30}: ${fmtT(7500*(1+pbi+29)/gain)}).</div><table style="width:100%;font-size:13px;margin-top:4px"><tr><th style="text-align:left">If you will keep playing this setup for</th><th>Buy up to level</th><th>Perks it costs</th></tr>`;
     [[24,'1 day'],[72,'3 days'],[168,'7 days'],[336,'14 days'],[720,'30 days']].forEach(r=>{ const n=lv(r[0]); h+=`<tr><td style="text-align:left">${r[1]}</td><td>${n>pbi?n:'none yet'}</td><td>${n>pbi?fmtBig(tot(n)):'—'}</td></tr>`; });
@@ -2189,7 +2206,8 @@ function recalcPzp(){
     const lvl = Math.min(parseFloat(document.getElementById('pzpLvl'+i).value)||0, p.cap||Infinity);
     const cost = perkCost(p, lvl);
     const afford = cost <= banked ? ' <span style="color:var(--accent2)">(affordable)</span>' : '';
-    document.getElementById('pzpOut'+i).innerHTML = `Next cost: <b>${fmtBig(cost)}</b>${afford}`;
+    const mx=p.cap&&lvl>=p.cap; document.getElementById('pzpOut'+i).innerHTML = mx?'<span style="color:var(--sub)">(maxed)</span>':`Next cost: <b>${fmtBig(cost)}</b>${afford}`;
+    pzTag('pzpLvl'+i,p.name,'Page 3',lvl,p.cap,cost,3000+i);
   });
   if (typeof recalcPzpExtra === 'function') recalcPzpExtra();
 }
@@ -2334,6 +2352,7 @@ function buildPzpGrid(gridId, items, idPrefix){
 }
 buildPzpGrid('pzp1Grid', pzp1Items, 'pzp1Lvl');
 buildPzpGrid('pzp2Grid', pzp2Items, 'pzp2Lvl');
+(function(){ const g=document.getElementById('pzp2Grid'), k=[...g.children]; for(let t=0;t<3;t++) for(let c=0;c<10;c++) g.appendChild(k[c*3+t]); })();
 buildPzpGrid('pzp4Grid', pzp4Items, 'pzp4Lvl');
 
 function recalcPzpExtra(){
@@ -2345,9 +2364,25 @@ function recalcPzpExtra(){
       const afford = cost <= banked ? ' <span style="color:var(--accent2)">(affordable)</span>' : '';
       const maxed = it.cap && lvl >= it.cap ? ' <span style="color:var(--sub)">(maxed)</span>' : '';
       document.getElementById(prefix+'Out'+i).innerHTML = lvl >= (it.cap||Infinity) ? maxed : `Next cost: <b>${fmtBig(cost)}</b>${afford}`;
+      pzTag(prefix+i,it.name,{pzp1Lvl:'Page 1',pzp2Lvl:'Page 2',pzp4Lvl:'Page 4'}[prefix],lvl,it.cap,cost,{pzp1Lvl:1000+i,pzp2Lvl:2000+(i%3)*10+Math.floor(i/3),pzp4Lvl:4000+i}[prefix]);
     });
   });
+  pzShopSummary();
 }
+function pzTag(id,name,page,lvl,cap,cost,ord){ const e=document.getElementById(id), c=e&&e.closest('.upg'); if(!c) return; c.dataset.max=(cap&&lvl>=cap)?'1':'0'; c.dataset.name=name; c.dataset.page=page; c.dataset.lvl=lvl; c.dataset.cap=cap||0; c.dataset.cost=cost; c.dataset.ord=ord; }
+function pzShopSummary(){ const o=document.getElementById('pzShopOut'), cb=document.getElementById('pzHideMax'); if(!o) return;
+  const pz=document.getElementById('pzp'); if(pz) pz.classList.toggle('pzHideMax',!!(cb&&cb.checked));
+  const banked=parseFloat(document.getElementById('pzpBanked').value)||0;
+  const all=[...document.querySelectorAll('#pzpGrid .upg,#pzp1Grid .upg,#pzp2Grid .upg,#pzp4Grid .upg')].filter(c=>c.dataset.name).map(c=>({n:c.dataset.name,pg:c.dataset.page,l:+c.dataset.lvl,cap:+c.dataset.cap,cost:+c.dataset.cost,ord:+c.dataset.ord,mx:c.dataset.max==='1'}));
+  const owned=all.filter(a=>a.l>0).sort((a,b)=>a.ord-b.ord), nxt=all.filter(a=>!a.mx).sort((a,b)=>a.cost-b.cost), buy=nxt.filter(a=>a.cost<=banked).sort((a,b)=>a.ord-b.ord), later=nxt.filter(a=>a.cost>banked).slice(0,6);
+  const lv=a=>a.l+(a.cap?'/'+a.cap:'');
+  let h='<div class="label">Perk Points banked: <b>'+fmtBig(banked)+'</b>. You can afford <b>'+nxt.filter(a=>a.cost<=banked).length+'</b> of '+nxt.length+' unbought or unfinished upgrades; '+all.filter(a=>a.mx).length+' are maxed.</div>';
+  const tbl=(X,last)=>'<table style="width:100%;font-size:13px"><tr><th style="text-align:left">Upgrade</th><th>Level now</th><th>Cost</th>'+(last?'<th>Still need</th>':'')+'</tr>'+X.map(a=>'<tr><td style="text-align:left">'+a.pg+': '+a.n+'</td><td>'+lv(a)+'</td><td>'+fmtBig(a.cost)+'</td>'+(last?'<td>'+fmtBig(a.cost-banked)+'</td>':'')+'</tr>').join('')+'</table>';
+  h+='<h3 style="margin:10px 0 4px">Buy now (in the game\'s page order)</h3>'+(buy.length?tbl(buy):'<div class="note">Nothing affordable yet.</div>');
+  h+='<h3 style="margin:10px 0 4px">Next up, cheapest first</h3>'+(later.length?tbl(later,true):'<div class="note">None.</div>');
+  h+='<details style="margin-top:8px"><summary style="cursor:pointer;color:var(--sub)">Current: '+owned.length+' upgrades with at least one level</summary>'+(owned.length?'<table style="width:100%;font-size:13px;margin-top:4px"><tr><th style="text-align:left">Upgrade</th><th>Level</th><th>Next cost</th></tr>'+owned.map(a=>'<tr><td style="text-align:left">'+a.pg+': '+a.n+'</td><td>'+lv(a)+(a.mx?' (maxed)':'')+'</td><td>'+(a.mx?'—':fmtBig(a.cost))+'</td></tr>').join('')+'</table>':'<div class="note">None yet.</div>')+'</details>';
+  o.innerHTML=h; }
+(function(){ const cb=document.getElementById('pzHideMax'); if(!cb) return; try{ const v=localStorage.getItem('wamiPzHideMax'); if(v!==null) cb.checked=v==='1'; }catch(e){} cb.addEventListener('change',()=>{ try{localStorage.setItem('wamiPzHideMax',cb.checked?'1':'0');}catch(e){} pzShopSummary(); }); })();
 recalcPzp();
 
 // ---- Gathering ----
@@ -3360,7 +3395,7 @@ var odIn=[
  ['c2','Challenge 2 completions',0,1,'n:SecondChallengeCompletion'],
  ['c5','Challenge 5 completions',0,1,'n:Challenge5Completion'],
  ['c9','Challenge 9 completions',0,1,'n:Challenge9Completion'],
- ['demUp','Demonic Upgrade: Training level',0,1,'n:DemonicUpgradeTrainingLevel'],
+ ['demUp','Demonic Upgrade: Spell Efficiency level',0,1,'n:DemonicUpgradeTrainingLevel'],
  ['sp25','Trophy Spell 25 bonus',0,null,'n:Spell25Bonus'],
  ['sp100','Trophy Spell 100 bonus',0,null,'n:Spell100Bonus'],
  ['sge50','Trophy Spell/Gold/Exp/Dungeon 50',0,null,'n:SpellGoldExpDung50Bonus'],
@@ -3494,8 +3529,8 @@ function plLevers(V0){
   return [
    {id:'demOff',name:'Move demons into the Offense boost (100 at a time, temporary)',cur:'Demons',bal:B.demPool,ok:B.demPool>0&&B.demG>0,why:'demon count or boost size not set',max:Math.floor(B.demPool/100),cost:k=>100,ap:(V,c)=>{V.bStr=(+V0.bStr||100)+c*100*B.demG;}},
    {id:'demDef',name:'Move demons into the Defense boost (100 at a time, temporary)',cur:'Demons',bal:B.demPool,ok:B.demPool>0&&B.demG>0,why:'demon count or boost size not set',max:Math.floor(B.demPool/100),cost:k=>100,ap:(V,c)=>{V.bDef=(+V0.bDef||100)+c*100*B.demG;}},
-   {id:'demUp',name:'Demonic Upgrade: Training',cur:'Demonic Essence',bal:B.de,ok:true,max:60,cost:k=>Math.pow(Math.pow(3,(+V0.demUp||0)+k)*100*(1-B.bfp/100),1-B.necro),ap:(V,c)=>{V.demUp=(+V0.demUp||0)+c;}},
-   {id:'hss3',name:'Hell Spirit shop: Training Efficiency',cur:'Hell Spirit',bal:B.hs,ok:!!B.hsOn,why:'Hell Spirit is not unlocked yet',max:30,cost:k=>5000*Math.pow(3,(+V0.hss3||0)+k+1),ap:(V,c)=>{V.hss3=(+V0.hss3||0)+c;}},
+   {id:'demUp',name:'Demonic Upgrade: Spell Efficiency',cur:'Demonic Essence',bal:B.de,ok:true,max:60,cost:k=>Math.pow(Math.pow(3,(+V0.demUp||0)+k)*100*(1-B.bfp/100),1-B.necro),ap:(V,c)=>{V.demUp=(+V0.demUp||0)+c;}},
+   {id:'hss3',name:'Hell Spirit shop: Spell Efficiency',cur:'Hell Spirit',bal:B.hs,ok:!!B.hsOn,why:'Hell Spirit is not unlocked yet',max:30,cost:k=>5000*Math.pow(3,(+V0.hss3||0)+k+1),ap:(V,c)=>{V.hss3=(+V0.hss3||0)+c;}},
    {id:'offP',name:'Plaza perk: Offense I (+2% Offense)',cur:'Plaza Perks',bal:B.perks,ok:true,max:Math.max(0,500-(+V0.offP||0)),cost:k=>2000,ap:(V,c)=>{V.offP=(+V0.offP||0)+c;}},
    {id:'defP',name:'Plaza perk: Defense I (+2% Defense)',cur:'Plaza Perks',bal:B.perks,ok:true,max:Math.max(0,500-(+V0.defP||0)),cost:k=>1000,ap:(V,c)=>{V.defP=(+V0.defP||0)+c;}},
    {id:'smith',name:'Town: Smithy (Offense)',cur:'Gold',bal:B.gold,ok:B.smL>0,why:'Smithy level not set',max:40,cost:k=>150000*Math.pow(1.2,B.smL+k),ap:(V,c)=>{V.smithy=V0.smithy+c*smP;}},
@@ -5363,6 +5398,7 @@ function processSaveData0(d, statusEl){
     hsList.forEach((v,i)=>{
       if (i < 6 && v !== undefined){ document.getElementById('hsLvl'+i).value = bdVal(v); }
     });
+    window.__hsHeld=bdVal(d.hellSpirit)||0;
     filled.push('Hell Spirit shop (6 upgrades)');
   }
 
@@ -6061,7 +6097,31 @@ function recGoalBF(){
       const cL=Math.round(Math.pow(bfSmnLvlBase[i]*(lv+1),1+lv/200)), gL=base*((1+(lv+1)/20)/(1+lv/20)-1)*dpsU; D.push({n:bwNames[i]+' summon level '+(lv+1),c:cL,g:gL});
       if(sp<45){ const cS=Math.round(Math.pow(bfSmnSpdBase[i]*(sp+1),1+sp/100)), gS=base*(((1-sp/50)/(1-(sp+1)/50))-1)*dpsU; D.push({n:bwNames[i]+' summon speed '+(sp+1),c:cS,g:gS}); } }
     D.forEach(a=>a.r=a.g/a.c); D.sort((a,b)=>b.r-a.r);
-    if(D.length) h+='<h3 style="margin:10px 0 4px">Hell Spirit: summon upgrades</h3><table style="width:100%;font-size:13px"><tr><th style="text-align:left">Buy</th><th>Hell Spirit</th><th>More units per tick</th></tr>'+D.slice(0,5).map((a,i)=>'<tr'+(i===0?' style="color:var(--accent2);font-weight:600"':'')+'><td style="text-align:left">'+a.n+'</td><td>'+f(a.c)+'</td><td>+'+(a.g/(st0.dps||1)*100).toFixed(2)+'% damage per tick of summoning</td></tr>').join('')+'</table><div class="note">Ranked by extra army damage that the added units bring per Hell Spirit. The Hell Spirit shop items (Wave HP, Reset Timer, Mana Cap Rate, Plaza Perk, Ancestry Exp) are not ranked: their value depends on goals the model does not weigh.</div>'; }catch(e){}
+    if(D.length) h+='<h3 style="margin:10px 0 4px">Hell Spirit: summon upgrades</h3><table style="width:100%;font-size:13px"><tr><th style="text-align:left">Buy</th><th>Hell Spirit</th><th>More units per tick</th></tr>'+D.slice(0,5).map((a,i)=>'<tr'+(i===0?' style="color:var(--accent2);font-weight:600"':'')+'><td style="text-align:left">'+a.n+'</td><td>'+f(a.c)+'</td><td>+'+(a.g/(st0.dps||1)*100).toFixed(2)+'% damage per tick of summoning</td></tr>').join('')+'</table><div class="note">Ranked by extra army damage that the added units bring per Hell Spirit. The Hell Spirit shop items are valued in the next section.</div>'; }catch(e){}
+  try{ h+=recHellShop(S0,base24,H); }catch(e){ h+='<div class="note">Hell Spirit shop: '+e.message+'</div>'; }
+  return h; }
+function recHellShop(S0,base24,H){
+  const f=bwFmt, N=bmN, num=i=>parseFloat((document.getElementById('hsLvl'+i)||{}).value)||0;
+  const held=window.__hsHeld||0, P=window.prpLast, pph=P&&P.cur&&P.cur.pph||0;
+  const cost=(i,L,n)=>{ const it=hsItems[i]; let c=0; for(let j=L;j<L+n;j++) c+=Math.round(Math.pow(it.base*(j+1),1+j/it.scale)); return c; };
+  const sim=(k,v)=>{ const old=bwP[k]; bwP[k]=v; try{ const X=bmState(); const r=bmSim(X,H,{buy:false,hold:false,se:false,warp:false},[H]); const q=r[r.length-1]; return q?{de:q.earned,wave:q.wave}:{de:0,wave:0}; } finally{ bwP[k]=old; } };
+  const rows=[], steps=[1,5,10,20];
+  const items=[{i:0,n:'Wave HP',k:'hss0'},{i:1,n:'Reset Timer',k:'rhss1'},{i:5,n:'Plaza Perk'},{i:2,n:'Mana Cap Rate'},{i:4,n:'Training Exp'}];
+  const B0=sim('hss0',bwP.hss0);
+  items.forEach(it=>{ const L=num(it.i); it.L=L; it.lad=steps.map(n=>{ const c=cost(it.i,L,n); let g, txt;
+      if(it.k){ const r=sim(it.k,L+n); g=B0.de>0?r.de/B0.de-1:0; txt='+'+(g*100).toFixed(1)+'% Essence/h'+(r.wave>B0.wave?', wave +'+(r.wave-B0.wave):''); }
+      else { g=(1+(L+n)/20)/(1+L/20)-1; txt='+'+(g*100).toFixed(1)+(it.n==='Plaza Perk'?'% perks per prestige'+(pph>0?' (+'+f(Math.round(pph*g))+'/h)':''):it.n==='Mana Cap Rate'?'% mana cap rate':'% training exp (waifu Ancestry exp)'); }
+      return {n,c,g,txt,ok:c<=held}; }); });
+  let h='<h3 style="margin:10px 0 4px">Hell Spirit shop: what '+f(held)+' Hell Spirit buys</h3><table style="width:100%;font-size:13px"><tr><th style="text-align:left">Item (level now)</th>'+steps.map(n=>'<th>+'+n+' levels</th>').join('')+'</tr>';
+  items.forEach(it=>{ h+='<tr><td style="text-align:left">'+it.n+' ('+it.L+')</td>'+it.lad.map(x=>'<td style="'+(x.ok?'':'opacity:.45')+'">'+x.txt+'<br><span style="color:var(--sub)">'+f(x.c)+' HS</span></td>').join('')+'</tr>'; });
+  h+='</table><div class="note">Faded cells cost more than you hold. Wave HP and Reset Timer come from the Battlefield simulation ('+H+' h, same settings as above). Plaza Perk, Mana Cap Rate and Training Exp are each +5% per level on top of what you have, so they fade slowly: level L adds 5/(1+L/20) percent. Spell Efficiency has its own formula and is not valued.</div>';
+  const pick=(it,n)=>it.lad[steps.indexOf(n)];
+  const best=(its,n)=>its.map(it=>({it,x:pick(it,n)})).sort((a,b)=>(b.x.g/b.x.c)-(a.x.g/a.x.c))[0];
+  const bE=best(items.slice(0,2),10);
+  h+='<div class="note"><b>By goal:</b> Plaza perks: <b>Plaza Perk</b>. Demonic Essence: <b>'+bE.it.n+'</b> gives more per Hell Spirit over the first 10 levels. Mana cap: <b>Mana Cap Rate</b>. Training exp: <b>Training Exp</b>. Reset Timer shows no Essence gain in the simulation.</div>';
+  const allin=i=>{ let L=num(i), left=held, n=0; while(n<2000){ const c=cost(i,L+n,1); if(c>left) break; left-=c; n++; } return n; };
+  const nP=allin(5), Lp=num(5), gP=(1+(Lp+nP)/20)/(1+Lp/20)-1;
+  h+='<div class="note">All '+f(held)+' Hell Spirit on Plaza Perk buys <b>+'+nP+' levels (to '+(Lp+nP)+')</b>: prestige perks ×'+(1+gP).toFixed(2)+(pph>0?', about +'+f(Math.round(pph*gP))+' perks/hour':'')+'. Baby demon payouts are not affected by this item.</div>';
   return h; }
 
 function recGoalGather(){
@@ -6337,7 +6397,7 @@ function recalcRecommend(){
     12: {type:'additive', per:2}, // Gathering Exp: +2 per level inside a sum (Gathering.GatheringRun)
     13: {type:'ratio', div:50},   // Gathering Speed
     14: {type:'ratio', div:20},   // Mana Rate: ManaCapRateBonus x(1+L/20) (GameManager.ManaNeed)
-    15: {type:'trainingMult'},    // Training Efficiency
+    15: {type:'trainingMult'},    // Spell Efficiency
   };
   const bfDemPricePerkI = parseFloat(document.getElementById('bfPricePerkI').value)||0;
   const bfDemNecro = Math.min(1, parseFloat(document.getElementById('bfNecroLowSum').value)||0);
@@ -6490,7 +6550,7 @@ function recalcRecommend(){
     const r = plazaPerksRows[0];
     const paE=document.getElementById('prp_pauto'); const pzAutoOn=!!(paE&&String(paE.value).trim()!==''&&parseFloat(paE.value)>0);
     topPicksHtml += pickCard({cheapOnly:pzAutoOn, name:`Plaza — ${r.name}`, cost:r.resCost, currency:`${r.res[0].toUpperCase()+r.res.slice(1)} (×3, Void/Astral/Divine)`,
-      why:`Earns the most Plaza Prestige Perks per ${r.res} spent (${r.perks} perks/level, also costs ${fmtBig(r.manaCost)} mana, paid from next-life mana first) — the best building to level by hand given your Gathering output. At your slowest track's current ${r.res} rate, affording its next level takes about ${isFinite(r.hoursToAfford)?r.hoursToAfford.toFixed(1)+'h':'—'}.${(()=>{ const pa=document.getElementById('prp_pauto'); const on=pa&&String(pa.value).trim()!==''&&parseFloat(pa.value)>0; return ` <b>${on?'You have Plaza Auto, so':'If you run auto-prestige,'} this pick doesn't apply:</b> auto-build levels everything to your targets each cycle, so what matters is the target ratio. Use the Plaza ratio planner on the Plaza Prestige tab for that.`; })()}`});
+      why:`Earns the most Plaza Prestige Perks per ${r.res} spent (${r.perks} perks/level, also costs ${fmtBig(r.manaCost)} mana, paid from next-life mana first) — the best building to level by hand given your Gathering output. At your slowest track's current ${r.res} rate, affording its next level takes about ${isFinite(r.hoursToAfford)?r.hoursToAfford.toFixed(1)+'h':'—'}.${(()=>{ const pa=document.getElementById('prp_pauto'); const on=pa&&String(pa.value).trim()!==''&&parseFloat(pa.value)>0; return ` <b>${on?'You have Plaza Auto, so':'If you run auto-prestige,'} this pick doesn't apply:</b> auto-build levels everything to your targets each cycle, so what matters is the target ratio. Use the Plaza ratio planner on the Plaza Planner tab for that.`; })()}`});
   }
 
   if (bfDemValueRows.length){
