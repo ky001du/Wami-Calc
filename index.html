@@ -35,6 +35,7 @@ h1{font-size:1.3rem;margin:0 0 2px;}
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239698ab' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
   background-repeat:no-repeat;background-position:right 12px center;background-size:16px;
 }
+.subTabs{display:none;flex-wrap:wrap;gap:6px;margin:-6px 0 14px}.subTabs button{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:16px;font-size:.85rem;cursor:pointer}.subTabs button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
 .tabSelect:focus{outline:1px solid var(--accent);}
 .panel{display:none;}
 .panel.active{display:block;}
@@ -112,7 +113,7 @@ td,th{overflow-wrap:anywhere;}
 </head>
 <body>
 <div class="wrap">
-  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v208 · 2026-11-02</span></h1>
+  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v216 · 2026-11-04</span></h1>
   <div id="saveBanner">The numbers on this page are <b>example values</b>, not your game. Load your save (Load Save tab, the first one) to replace them with yours.</div>
   <p class="sub">Formulas pulled directly from the game's compiled code + your save. Covers what's been fully verified so far — more tabs get added as more systems get decoded.</p>
 
@@ -127,29 +128,22 @@ td,th{overflow-wrap:anywhere;}
   <select id="tabSelect" class="tabSelect">
     <option value="load">Load Save</option>
     <option value="rec">Recommend</option>
-    <option value="adv">Slime Adventure</option>
-    <option value="dgn">Dungeon</option>
+    <option value="spell">Spell</option>
+    <option value="conj">Conjuring</option>
+    <option value="demons">Demons</option>
     <option value="town">Town</option>
-    <option value="gathering">Gathering</option>
-    <option value="gen">Generator</option>
-    <option value="reinc">Reincarnation</option>
-    <option value="medit">Meditation</option>
-    <option value="cooking">Cooking</option>
-    <option value="fishing">Fishing</option>
-    <option value="babydemons">Baby Demons</option>
-    <option value="trophyshop">Trophy Shop</option>
-    <option value="soul">Soul Shop</option>
-    <option value="bf">Battlefield</option>
-    <option value="exp">Exp Shop</option>
-    <option value="pzp">Plaza Planner</option>
-    <option value="spell">Conjuring</option>
-    <option value="truespell">Spell</option>
-    <option value="advitems">Adventure Items</option>
-    <option value="crafting">Crafting</option>
-    <option value="challenges">Challenges</option>
-    <option value="genv2">Generator V2</option>
     <option value="minion">Minion</option>
+    <option value="adventure">Adventure</option>
+    <option value="slimes">Slimes</option>
+    <option value="generator">Generator</option>
+    <option value="dungeon">Dungeon</option>
+    <option value="bf">Battlefield</option>
+    <option value="reinc">Reincarnation</option>
+    <option value="exp">Exp Shop</option>
+    <option value="soul">Soul Shop</option>
+    <option value="stats">Stats</option>
   </select>
+  <div id="subTabs" class="subTabs"></div>
 
   <!-- SLIME ADVENTURE -->
   <div class="panel" id="adv">
@@ -206,50 +200,35 @@ td,th{overflow-wrap:anywhere;}
 
   <!-- DUNGEON -->
   <div class="panel" id="dgn">
-    <div class="card">
-      <h2>Per-hit damage to a dungeon boss</h2>
-      <div class="row">
-        <label>Training Damage (BD)</label>
-        <input type="number" id="dgnDmg" value="1000" min="0">
-      </div>
-      <div class="row">
-        <label>Training Defense (BD)</label>
-        <input type="number" id="dgnDef" value="500" min="0">
-      </div>
-      <div class="result">
-        <div class="label">damage = 10^(log₁₀(dmg+def)/5 + 0.7) / 2</div>
-        <div class="big" id="dgnDamageOut">—</div>
-      </div>
-    </div>
-
     <input type="hidden" id="dgnHps" value="1"><!-- dungeon hits land once per second: Dungeon.Start InvokeRepeating("AttackDamage", 0.05, 1.0) -->
-
     <div class="card">
-      <h2>All 12 dungeons (from your save)</h2>
-      <p class="note">Each update removes Shadows invested &times; per-shadow damage &times; Dungeon damage bonus from the boss. Per-shadow damage is <code>10^(log10(stat)/5 + 0.7)</code>. Stat per dungeon: Attack = Training Damage + Defense (result halved); Mana = Mana per tick + Mana Power; Conjuring = total Conjuring levels; Gold/Exp = one kill's gold + exp; Demons = total demons; Essence = total Power; Gathering = total resources gathered; Reincarnation = bonus &minus; 100; Spiritus = Power limit; Battlefield = highest unit attack; Fishing = total fish weight; Slimes = waifu age. Floors, shadows, boss HP and most stats load from your save.</p>
-      <div class="row"><label>Dungeon damage bonus <span style="color:var(--sub)">(the game's DungeonDmgBonusBD: generators, Reincarnation bonus, trophies, event points &hellip; it is not stored in the save, so type it if you know it; 1 shows the base)</span></label><input type="number" id="dgnBonus" value="1" min="0" step="any"></div>
-      <div class="row"><label>Mana per tick + Mana Power <span style="color:var(--sub)">(Mana dungeon only; not in the save)</span></label><input type="number" id="dgnManaStat" value="0" min="0" step="any"></div>
-      <div class="row"><label>One kill's gold + exp <span style="color:var(--sub)">(Gold/Exp dungeon only; not in the save)</span></label><input type="number" id="dgnGEStat" value="0" min="0" step="any"></div>
-      <div id="dgnAllOut"><p class="note">Load your save to fill this table.</p></div>
-      <div class="gap-note">Updates per second come from the Hits per second box above. Attack with Infinite Challenge 5 clears raises total damage to the power <code>0.99^clears</code>; this is applied.</div>
+      <h2>Dungeon damage bonus <span style="font-weight:400;color:var(--sub)">(DungeonDmgBonusBD, worked out from your save)</span></h2>
+      <div class="row"><label>Total (you can overwrite it)</label><input type="number" id="dgnBonus" value="1" min="0" step="any"></div>
+      <div id="dgnTermsOut"><p class="note">Load your save to see what makes it up.</p></div>
+      <div class="row"><label>Damage potion multiplier <span style="color:var(--sub)">(max of the active and passive potion boost; not worked out from the save)</span></label><input type="number" id="dgnPotion" value="1" min="0" step="any"></div>
+      <div class="row"><label>Cooking line 8 buff <span style="color:var(--sub)">(timed, 0 when it is not running)</span></label><input type="number" id="dgnL8" value="0" min="0" step="any"></div>
+      <div class="row"><label>Mana dungeon stat <span style="color:var(--sub)">(mana per tick + Mana Power, from the save)</span></label><input type="number" id="dgnManaStat" value="0" min="0" step="any"></div>
+      <div class="row"><label>Gold/Exp dungeon stat <span style="color:var(--sub)">(gold + exp of the last kill, from the save)</span></label><input type="number" id="dgnGEStat" value="0" min="0" step="any"></div>
+      <div class="gap-note">Every dungeon uses the same hit formula, <code>10^(log&#8321;&#8320;(stat)/5 + 0.7)</code> per shadow (the game's <code>*DGDamage</code> methods), once per second. They differ only in the stat that goes in: Attack uses Training Damage + Defense and is halved, Mana uses mana per tick + Mana Power, Conjuring the total Conjuring levels, Gold/Exp one kill's gold + exp, Demons total demons, Essence total power, Gathering total resources, Reincarnation the bonus minus 100, Spirit the spirit cap, Battlefield your highest attack, Fishing total fish weight, Slimes the waifu age. Attack also takes the power <code>0.99^clears</code> from Deep And Dark. Not applied: the Hardest Challenge Ever version of the bonus (it has far fewer terms).</div>
     </div>
+    <div id="dgnGrid" class="dgnGrid"></div>
   </div>
 
   <!-- TOWN -->
   <div class="panel" id="town">
     <div class="card">
       <h2>Building cost to next level</h2>
-      <p class="note"><code>cost = base &times; growth^level</code>. Challenge 14: growth &times; 2. Challenge 12: growth + (Challenge12Completion + 1) &times; growth / 2. Enter your current level per building.</p>
+      <p class="note"><code>cost = base &times; growth^level</code>. Hardest Challenge Ever: growth &times; 2. Real Estate: growth + (Challenge12Completion + 1) &times; growth / 2. Enter your current level per building.</p>
       <div class="row">
         <label>Active challenge</label>
         <select id="townChallenge" style="flex:1 1 120px;background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:7px 9px;border-radius:6px;">
           <option value="none">None</option>
-          <option value="14">Challenge 14</option>
-          <option value="12">Challenge 12</option>
+          <option value="14">Hardest Challenge Ever</option>
+          <option value="12">Real Estate</option>
         </select>
       </div>
       <div class="row" id="townC12Row" style="display:none;">
-        <label>Challenge 12 Completion count <span style="color:var(--sub)">(auto-filled from a save)</span></label>
+        <label>Real Estate Completion count <span style="color:var(--sub)">(auto-filled from a save)</span></label>
         <input type="number" id="townC12" value="0" min="0">
       </div>
       <div class="upgrade-grid" id="townGrid"></div>
@@ -308,7 +287,7 @@ td,th{overflow-wrap:anywhere;}
     <div class="card">
       <h2>Reincarnation</h2>
       <p class="note">Reincarnation bonus applies to Mana Refill &amp; Mana Power, Offense &amp; Defense, Meditation, Essence, Dungeon. Reincarnating resets Spell, Conjuring, Demons, Meditation, Town &amp; Shadow.</p>
-      <p class="note"><code>component% = f(rawStat) &times; M</code>, with M = ReincBonusBD &times; SReincBonus &times; (1+Triangle(perk)&times;0.1). Stage = MaxStage/3. Conjuring = 3^(0.25&times;log10(ManaSpent)+0.8). Meditation = TotalMeditationLevel/3. Demonic Essence = 3^(0.25&times;log10(DELife)+2.3), 0 if Darkness is not unlocked. Total Meditation Level is the sum of your Mana/Stats/Income Meditation levels, not the Generator's Meditation type.</p>
+      <p class="note"><code>component% = f(rawStat) &times; M</code>, with M = ReincBonusBD &times; SReincBonus &times; (1+Triangle(perk)&times;0.1). Stage = MaxStage/3. Conjuring = 3^(0.25&times;log10(ManaSpent)+0.8). Meditation = TotalMeditationLevel/3. Demonic Essence = 3^(0.25&times;log10(DELife)+2.3), 0 until you have 2 completions of the No Reincarnation challenge (the game checks for 1.9 or more). Total Meditation Level is the sum of your Mana/Stats/Income Meditation levels, not the Generator's Meditation type.</p>
       <p class="note">M is a long chain (about 15-20 terms), kept as one number. A save back-solves it from your saved bonus; otherwise M = shown % &divide; the component's raw formula above. Temporary Cooking buffs (10 min) can make Current and Next M differ a lot.</p>
       <div class="row"><label>Highest Stage — Current (the best stage of the life you last reincarnated from)</label><input type="number" id="reincStage" value="305" step="1"></div>
       <div class="row"><label>Highest Stage — Next (the best stage of this life so far; your 10-16 screenshot showed 331 current vs 326 next)</label><input type="number" id="reincStageNext" value="305" step="1"></div>
@@ -316,10 +295,12 @@ td,th{overflow-wrap:anywhere;}
       <div class="row"><label>Mana spent on Conjuring — Next (live, this life so far)</label><input type="number" id="reincManaNext" value="9.706e12" step="any"></div>
       <div class="row"><label>Total Meditation Level (Mana+Stats+Income) — Current</label><input type="number" id="reincMeditCur" value="431" step="1"></div>
       <div class="row"><label>Total Meditation Level (Mana+Stats+Income) — Next</label><input type="number" id="reincMeditNext" value="442" step="1"></div>
-      <div class="row"><label>Demonic Essence Life (BM.DELifeBD) — Current <span style="color:var(--sub)">(0 if you haven't unlocked Darkness)</span></label><input type="number" id="reincDECur" value="0" step="any"></div>
+      <div class="row"><label>Demonic Essence Life (BM.DELifeBD) — Current <span style="color:var(--sub)">(counts only after 2 completions of the No Reincarnation challenge)</span></label><input type="number" id="reincDECur" value="0" step="any"></div>
       <div class="row"><label>Demonic Essence Life (BM.DELifeBD) — Next</label><input type="number" id="reincDENext" value="0" step="any"></div>
       <div class="row"><label>M multiplier — Current <span style="color:var(--sub)">(back-solve: a known Current bonus% ÷ that component's raw formula)</span></label><input type="number" id="reincMCur" value="364.21" step="0.01"></div>
-      <div class="row"><label>M multiplier — Next</label><input type="number" id="reincMNext" value="143.68" step="0.01"></div>
+      <div class="row"><label>M multiplier — Next <span style="color:var(--sub)">(worked out from your save: the game's ReincBonusBD)</span></label><input type="number" id="reincMNext" value="143.68" step="0.01"></div>
+      <div class="row"><label>Stage / Meditation / Demonic Essence extra multiplier <span style="color:var(--sub)">(Reincarnation shop bonus &times; permanent perk; Conjuring does not get it)</span></label><input type="number" id="reincSR" value="1" step="any"></div>
+      <div id="reincMTerms" class="note"></div>
       <div class="result" style="margin-top:12px;">
         <div class="label">Current Reincarnation Bonus &nbsp;/&nbsp; Next Reincarnation Bonus (what you'd get if you reincarnated right now)</div>
         <div class="big" id="reincTotalOut">—</div>
@@ -515,7 +496,7 @@ td,th{overflow-wrap:anywhere;}
         <div class="label">Current ChallengeAdvBonus → Attack/Defense multiplier</div>
         <div class="big" id="chBonusOut">—</div>
       </div>
-      <table id="chTable"></table>
+      <div id="chTable" class="chList"></div>
       <div class="gap-note">Goals, rewards and recommended stats are from the wiki. 48 completions in total (max ChallengeAdvBonus 96). "Depends on…" rewards are shown as written. No Reincarnation 2-4's unlock line was missing on the wiki and is assumed to follow the chain.</div>
     </div>
     <div class="card">
@@ -607,7 +588,7 @@ td,th{overflow-wrap:anywhere;}
   <div class="panel" id="genv2">
     <div class="card">
       <h2>Generator V2 <span style="font-weight:400;color:var(--sub);">(permanent-bonus charges, unlocked from Stage 380)</span></h2>
-      <p class="note">Releasing a charge on a category converts Essence into a permanent "X%" bonus: gain = floor( logbase(Essence+1) &times; (1+Machinist GenV2) &times; (1+Tribute level&times;0.04) &times; ((1+Trophy 15%)+Trophy 35%) &times; (1+Pull Gen%/100) ). Each release also spends one charge, consumes floor(logbase(Essence+1))&times;base Essence (see the column) and grants 5000 &times; min(AchievementTrophy/10000+1, 2) Spirit. Not modeled: Challenge 14, where Essence becomes Total Essence^0.9.</p>
+      <p class="note">Releasing a charge on a category converts Essence into a permanent "X%" bonus: gain = floor( logbase(Essence+1) &times; (1+Machinist GenV2) &times; (1+Tribute level&times;0.04) &times; ((1+Trophy 15%)+Trophy 35%) &times; (1+Pull Gen%/100) ). Each release also spends one charge, consumes floor(logbase(Essence+1))&times;base Essence (see the column) and grants 5000 &times; min(AchievementTrophy/10000+1, 2) Spirit. Not modeled: Hardest Challenge Ever, where Essence becomes Total Essence^0.9.</p>
       <div class="row"><label>Highest Stage</label><input type="number" id="gv2Stage" value="1" min="1" step="1"></div>
       <div class="row"><label>Current Essence <span style="color:var(--sub);">(accepts 1.4e20)</span></label><input type="text" id="gv2Essence" value="1e20"></div>
       <div class="row"><label>Charges: current / max</label><input type="number" id="gv2Cur" value="3" min="0" step="1" style="width:48%;"> / <input type="number" id="gv2Max" value="3" min="0" step="1" style="width:48%;"></div>
@@ -739,7 +720,7 @@ td,th{overflow-wrap:anywhere;}
       
       <div class="row"><label>Stage / your Offense / your Defense</label><input type="number" id="sfsStage" value="100" min="1" step="1" style="width:23%;"> / <input type="text" id="sfsOff" value="" placeholder="e.g. 3.3B" style="width:31%;"> / <input type="text" id="sfsDef" value="" placeholder="e.g. 2.1B" style="width:31%;"></div>
       <div class="row"><label>Temple bonus % (monster stats are multiplied by this; 100 = no Temple, your save shows it)</label><input type="number" id="sfsTemple" value="100" min="0" step="any" style="width:31%;"></div>
-      <div class="row"><label>Kill-timer reductions: Challenge 10 / Challenge 11 completions / Battle Mage perma / Faster Stage trophies (0&ndash;2)</label><input type="number" id="sfsC10" value="0" step="any" style="width:23%;"> / <input type="number" id="sfsC11" value="0" step="any" style="width:23%;"> / <input type="number" id="sfsBM" value="0" step="any" style="width:23%;"> / <input type="number" id="sfsTR" value="0" step="any" style="width:23%;"></div>
+      <div class="row"><label>Kill-timer reductions: OPM / No Reincarnation completions / Battle Mage perma / Faster Stage trophies (0&ndash;2)</label><input type="number" id="sfsC10" value="0" step="any" style="width:23%;"> / <input type="number" id="sfsC11" value="0" step="any" style="width:23%;"> / <input type="number" id="sfsBM" value="0" step="any" style="width:23%;"> / <input type="number" id="sfsTR" value="0" step="any" style="width:23%;"></div>
       <div class="result" style="margin-top:12px;"><div class="label">Monster at this stage: Defense / Damage / HP</div><div class="big" id="sfsMon">—</div></div>
       <div class="result" style="margin-top:12px;"><div class="label">Result</div><div class="big" id="sfsRes">—</div></div>
       <table id="sfsTable"></table>
@@ -864,7 +845,7 @@ td,th{overflow-wrap:anywhere;}
 
     <div class="card" id="clCard">
       <h2>Life planner: Conjuring levels, demons per life &amp; reincarnation <span style="font-weight:400;color:var(--sub);">(what this life's mana limit buys, and what the next one will)</span></h2>
-      <p class="note">Finds, for all 20 spells, the level where the next level costs more than your Mana Limit (cost already includes Sanctuary, Demon Gem Conjuring Bonus, Conjurer cost and Challenge 4), totals the demons from the ten demon spells, and compares this life with the next.</p>
+      <p class="note">Finds, for all 20 spells, the level where the next level costs more than your Mana Limit (cost already includes Sanctuary, Demon Gem Conjuring Bonus, Conjurer cost and No Conjuring), totals the demons from the ten demon spells, and compares this life with the next.</p>
       <div id="clInputs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;"></div>
       <table id="clTable"></table>
       <div id="clInfo" class="note"></div>
@@ -1153,7 +1134,7 @@ td,th{overflow-wrap:anywhere;}
       <h2>All 20 Conjuring entries</h2>
       <p class="note">Level, next-level mana cost and parked mana fill from a save. An entry set Off won't level up however much mana is parked in it.</p>
       <div class="upgrade-grid" id="spellGrid"></div>
-      <div class="gap-note">Next-level cost is read from your save, and the cost shown includes Sanctuary, Demon Gem Conjuring bonus, Conjurer cost reduction and Challenge 4 (all four load from the save). Izzy's and Open's Power feed a Hero Damage/Defense bonus together with Pocus's level count, which is not modeled.</div>
+      <div class="gap-note">Next-level cost is read from your save, and the cost shown includes Sanctuary, Demon Gem Conjuring bonus, Conjurer cost reduction and No Conjuring (all four load from the save). Izzy's and Open's Power feed a Hero Damage/Defense bonus together with Pocus's level count, which is not modeled.</div>
     </div>
   </div>
 
@@ -1164,6 +1145,10 @@ td,th{overflow-wrap:anywhere;}
       <p class="note">Leveling is capped at 50 levels/sec and by exp cost (level × a per-tier constant). With your Mana Power this gives each spell's current levels/sec and the mana needed to reach the 50/sec ceiling.</p>
       <div class="row"><label>Account multiplier <span style="color:var(--sub)">("Current Bonus" ÷ (Level × wiki per-level base) — same for every spell)</span></label><input type="number" id="tsMult" value="1443.75" min="0" step="0.01"></div>
       <div class="row"><label>Mana Power <span style="color:var(--sub)">(the multiplier that turns mana invested into exp/sec; filled from a save, ignores the potion boost)</span></label><input type="number" id="tsManaPower" value="3.4e15" min="0"></div>
+      <h3 style="margin:10px 0 4px">What multiplies every spell (changes with completions)</h3>
+      <div class="row"><label>Inferno completions / Blade Storm completions / Air Elemental completions</label><span style="display:flex;gap:6px"><input type="number" id="tsC2" value="0" min="0" style="width:33%"><input type="number" id="tsC5" value="0" min="0" style="width:33%"><input type="number" id="tsC9" value="0" min="0" style="width:33%"></span></div>
+      <div class="row"><label>Demonic Upgrade Spell Efficiency level / Hell Spirit Spell Efficiency level</label><span style="display:flex;gap:6px"><input type="number" id="tsDU" value="0" min="0" style="width:50%"><input type="number" id="tsHS" value="0" min="0" style="width:50%"></span></div>
+      <div id="tsAccOut" class="note"></div>
       <div class="gap-note">Level, Mana invested and the Account multiplier (BonusBD ÷ ValueBD) load from a save. Mana Power is computed from the save (potion boost excluded). Reincarnation and challenges zero spells, so older levels won't match a fresh save.</div>
     </div>
 
@@ -1255,10 +1240,22 @@ function fmtEff(v){
   function show(){ const v=g.value; document.querySelectorAll('#pzp [data-pz]').forEach(x=>{ x.style.display = x.getAttribute('data-pz')===v ? '' : 'none'; }); try{localStorage.setItem('wamiPzGoal',v);}catch(e){} }
   try{ const sv=localStorage.getItem('wamiPzGoal'); if(sv && g.querySelector('option[value="'+sv+'"]')) g.value=sv; }catch(e){}
   g.addEventListener('change',show); show(); window.pzGoalShow=show; })();
-document.getElementById('tabSelect').addEventListener('change', (e)=>{
-  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
-  document.getElementById(e.target.value).classList.add('active');
-});
+const NAV=[["load", "Load Save", [["load", "Load Save"]]], ["rec", "Recommend", [["rec", "Recommend"]]], ["spell", "Spell", [["truespell", "Spell"]]], ["conj", "Conjuring", [["spell", "Conjuring"]]], ["demons", "Demons", [["babydemons", "Baby Demons"]]], ["town", "Town", [["town", "Town"], ["pzp", "Plaza Planner"]]], ["minion", "Minion", [["minion", "Minion"]]], ["adventure", "Adventure", [["gathering", "Gather"], ["crafting", "Crafting"], ["fishing", "Fishing"], ["cooking", "Cooking"]]], ["slimes", "Slimes", [["sl_slimes", "Slimes"], ["adv", "Stages"], ["sl_equip", "Equipment"], ["sl_crys", "Crystals"], ["sl_map", "Map"]]], ["generator", "Generator", [["gen", "Generator"], ["genv2", "Generator V2"]]], ["dungeon", "Dungeon", [["dgn", "Dungeon"]]], ["bf", "Battlefield", [["bf", "Battlefield"]]], ["reinc", "Reincarnation", [["reinc", "Reincarnation"], ["medit", "Meditation"], ["challenges", "Challenges"]]], ["exp", "Exp Shop", [["exp", "Exp Shop"]]], ["soul", "Soul Shop", [["soul", "Soul Shop"]]], ["stats", "Stats", [["trophyshop", "Trophy Shop"]]]];
+(function(){ const card=id=>{const e=document.getElementById(id); return e&&e.closest('.card');};
+  const mech=[...document.querySelectorAll('#advitems .card')].find(c=>/equipment mechanics/.test(c.textContent.slice(0,80)));
+  const defs=[['sl_slimes',['slimeOut']],['sl_equip',['gearOut','gearBestOut','gearDb'],mech,['advItemTable']],['sl_crys',['craftTable']],['sl_map',['advZoneTable']]];
+  const anchor=document.getElementById('advitems');
+  defs.forEach(d=>{ const p=document.createElement('div'); p.className='panel'; p.id=d[0]; anchor.parentNode.insertBefore(p,anchor);
+    d.slice(1).forEach(x=>{ const cs=Array.isArray(x)?x.map(card):[x]; cs.forEach(c=>{ if(c&&c.parentNode!==p) p.appendChild(c); }); }); }); })();
+(function(){ const sel=document.getElementById('tabSelect'), bar=document.getElementById('subTabs'); const last={};
+  function open(pid){ document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active')); document.getElementById(pid).classList.add('active'); }
+  function showGroup(k){ const g=NAV.find(x=>x[0]===k); if(!g) return; const subs=g[2]; const cur=last[k]||subs[0][0]; last[k]=cur;
+    bar.innerHTML=''; bar.style.display=subs.length>1?'flex':'none';
+    subs.forEach(([pid,n])=>{ const b=document.createElement('button'); b.type='button'; b.textContent=n; b.className=pid===cur?'on':''; b.onclick=()=>{ last[k]=pid; showGroup(k); }; bar.appendChild(b); });
+    open(cur); }
+  sel.addEventListener('change',()=>showGroup(sel.value));
+  window.gotoPanel=function(pid){ const g=NAV.find(x=>x[2].some(y=>y[0]===pid)); if(!g){ open(pid); return; } last[g[0]]=pid; sel.value=g[0]; showGroup(g[0]); };
+  showGroup(sel.value); })();
 
 // ---- Slime Adventure ----
 function triangle(n){ return n*(n+1)/2; }
@@ -1337,17 +1334,6 @@ document.getElementById('alchPC').addEventListener('input', recalcAlch);
 recalcAlch();
 
 // ---- Dungeon ----
-function recalcDgn(){
-  const dmg = parseFloat(document.getElementById('dgnDmg').value)||0;
-  const def = parseFloat(document.getElementById('dgnDef').value)||0;
-  const sum = dmg + def;
-  let hitDmg = 0;
-  if (sum > 0){
-    hitDmg = Math.pow(10, Math.log10(sum)/5 + 0.7) / 2;
-  }
-  document.getElementById('dgnDamageOut').textContent = fmtBig(hitDmg);
-
-}
 function formatTime(s){
   if (!isFinite(s)) return '∞';
   if (s < 60) return s.toFixed(1)+'s';
@@ -1355,10 +1341,7 @@ function formatTime(s){
   if (s < 86400) return (s/3600).toFixed(1)+'h';
   return (s/86400).toFixed(1)+'d';
 }
-['dgnDmg','dgnDef'].forEach(id=>
-  document.getElementById(id).addEventListener('input', recalcDgn)
-);
-recalcDgn();
+
 
 // ---- All 12 dungeons table (Dungeon.*DGDamage / Dungeon.AttackDamage) ----
 const dgnDefs=[['Attack','Attack'],['Mana','Mana'],['Conjuring','Conjuring'],['GoldExp','Gold / Exp'],['Slave','Demons'],['Essence','Essence'],['Gathering','Gathering'],['Reincarnation','Reincarnation'],['Spiritus','Spiritus'],['Battlefield','Battlefield'],['Fishing','Fishing'],['SlimesExp','Slimes']];
@@ -1368,18 +1351,49 @@ function rewTxt(k,S){ const w=S.rw; if(!(w>0)) return '—'; const f=x=>(x>=1e6?
   const F={Conjuring:'-1% Conjuring cost',Gathering:'+2% Gathering speed',Spiritus:'+2% Spirit refill speed',Fishing:'+1% Fishing speed'};
   return R[k]?('+'+f(R[k][0])+' '+R[k][1]):F[k]; }
 function dgnAllRender(){
-  const out=document.getElementById('dgnAllOut'); if(!out) return; const S=window.__dgn; if(!S){ out.innerHTML='<p class="note">Load your save to fill this table.</p>'; return; }
+  const out=document.getElementById('dgnGrid'); if(!out) return; const S=window.__dgn; if(!S){ out.innerHTML='<p class="note">Load your save to fill this page.</p>'; return; }
   const bonus=parseFloat(document.getElementById('dgnBonus').value)||1, hps=parseFloat(document.getElementById('dgnHps').value)||0;
   const mS=parseFloat(document.getElementById('dgnManaStat').value)||0, geS=parseFloat(document.getElementById('dgnGEStat').value)||0;
   const stat={Attack:S.atk,Mana:mS,Conjuring:S.conj,GoldExp:geS,Slave:S.slaves,Essence:S.power,Gathering:S.gath,Reincarnation:S.reinc-100,Spiritus:S.plimit,Battlefield:S.bfAtk,Fishing:S.weight,SlimesExp:S.age};
-  let h='<table><tr><th>Dungeon</th><th>Floor</th><th>Shadows</th><th>Boss HP left / max</th><th>Damage per shadow</th><th>Updates to clear</th><th>Time</th><th>Reward (as shown in game)</th></tr>';
-  dgnDefs.forEach(([k,label])=>{ const st=stat[k], sh=S.shadow[k]||0, hp=S.hp[k], mx=S.max[k];
+  const card=([k,label])=>{ const st=stat[k], sh=S.shadow[k]||0, hp=S.hp[k], mx=S.max[k];
     let per=st>0?Math.pow(10,Math.log10(st)/5+0.7):0; if(k==='Attack') per/=2;
     let tot=sh*per*bonus; if(k==='Attack'&&S.if5>0) tot=Math.pow(tot,Math.pow(0.99,S.if5));
-    const hits=(tot>0&&hp>0)?Math.ceil(hp/tot):null;
-    h+='<tr><td>'+label+'</td><td>'+(S.floor[k]||0)+'</td><td>'+sh+'</td><td>'+(hp!==undefined?fmtBig(hp)+' / '+fmtBig(mx):'—')+'</td><td>'+(per>0?fmtBig(per):'needs the stat above')+'</td><td>'+(hits!==null?fmtBig(hits):(sh>0?'—':'no shadows')) +'</td><td>'+(hits!==null&&hps>0?formatTime(hits/hps):'—')+'</td><td>'+rewTxt(k,S)+'</td></tr>'; });
-  out.innerHTML=h+'</table>';
+    const hits=(tot>0&&hp>0)?Math.ceil(hp/tot):null, pct=(hp!==undefined&&mx>0)?Math.max(0,Math.min(100,100*hp/mx)):0;
+    return '<div class="dg"><h4>'+label+'</h4>Floor <b>'+(S.floor[k]||0)+'</b> &middot; Shadows <b>'+sh+'</b>'
+      +'<div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div>'+(hp!==undefined?fmtBig(hp)+' / '+fmtBig(mx)+' HP':'')
+      +'<br>Per shadow '+(per>0?fmtBig(per):'needs the stat above')+' &middot; per second '+(tot>0?fmtBig(tot):'—')
+      +'<br>'+(hits!==null?'Clears in '+formatTime(hits/Math.max(hps,1e-9))+' ('+fmtBig(hits)+' hits)':(sh>0?'—':'no shadows placed'))
+      +'<div class="rw">'+rewTxt(k,S)+'</div></div>'; };
+  const col=(arr)=>'<div style="display:flex;flex-direction:column;gap:10px">'+arr.map(card).join('')+'</div>';
+  out.innerHTML=col(dgnDefs.slice(0,7))+col(dgnDefs.slice(7));
 }
+// DungeonDmgBonusBD (Dungeon.Update, normal branch), every term from the save
+function dgnBonusFromSave(){
+  const d=window.__advD; if(!d) return;
+  const g=k=>(d[k]!==undefined&&d[k]!==null)?(bdVal(d[k])||0):0, arr=k=>{ const v=d[k]; return v&&v._items?v._items.map(x=>bdVal(x)||0):[]; }, tri=n=>n*(n+1)/2;
+  const num=id=>parseFloat((document.getElementById(id)||{}).value)||0;
+  const ge=arr('generatorsEssence'), ag=arr('antigravityLevel'), p3=arr('page3Perks'), ec=g('CurrentEssenceBD'), gbb=g('generatorBonusBonus')||1;
+  const un=g('MaxStageLife')>=125, gp=E=>E>1?Math.pow(3,Math.log10(E)*0.167+1.5)*gbb:0;
+  const gcur=un?100+gp(ec)/2:100, gper=un?100+gp(ge[7]||0):100;
+  const gear=(window.saveGear&&window.saveGear.P&&window.saveGear.P.DungeonDamage)||0, sl=(window.saveSlimes&&window.saveSlimes.eff&&window.saveSlimes.eff[12])||1;
+  const ifB=1.1+g('IFChallenge15Bonus')*0.015+g('IFChallenge35Bonus')*0.035, pot=num('dgnPotion')||1;
+  const T=[['Trophy: Dungeon 15',1+g('Dungeon15Bonus')],['Trophy: Dungeon 50',1+g('Dungeon50Bonus')],
+    ['Spell trophies (gold/exp/dungeon 50 and 150)',(1+0.5*g('SpellGoldExpDung50Bonus'))*(1+1.5*g('SpellGoldExpDung150Bonus'))],
+    ['Generator 7 (current)',gcur/100],['Generator 7 (permanent)',gper/100],['Crappis spell',g('CrappisPower')/100],
+    ['Equipment Dungeon Damage',(gear+100)/100],['Slime Dungeon Damage',sl],['Reincarnation bonus',g('ReincarnateBonusBD')/100],
+    ['Achievement trophies',1+g('AchievementTrophy')/4000],['Event points',1+g('EventPointBonus')/50],['Demonic upgrade (Dungeon)',1+g('DemonicUpgradeDungeonLevel')/20],
+    ['Cooking line 8 buff',1+num('dgnL8')],['Cooking row 3 permanent',1+g('Row3Perma')/100],['Plaza perk Dungeon I',1+g('DungeonPerkI')/50],
+    ['Synergy layer 15',1+g('Layer15Bonus')],['Deep And Dark clears',Math.pow(ifB,g('IFChallenge5Completion'))],['Cultist damage',1+g('CultistDungeonDmgBonus')],
+    ['Dump upgrade',(g('DungeonDamageDumpBonusBD')||1)*(g('DungeonDamageDumpBonusAscendBD')||1)],['Permanent perk page 3',1+tri(p3[5]||0)*0.05],
+    ['Adventure training (hero)',Math.pow(1.05,g('ATDungeonDmgLevel'))],['Comos',Math.pow(1.005,g('ComosDungeonLevel'))],['Antigravity',1+(ag[4]||0)/1000],
+    ['Cultist dungeons beaten',1+g('CultistDungeonBeatBonus')*g('TotalDungeonBeat')],['Damage potion',pot]];
+  const tot=T.reduce((a,t)=>a*t[1],1), on=T.filter(t=>Math.abs(t[1]-1)>1e-9), off=T.filter(t=>Math.abs(t[1]-1)<=1e-9);
+  window.__dgnTotal=tot; const e=document.getElementById('dgnBonus'); if(e&&!(window.__dgnManual)) e.value=Number(tot.toPrecision(8));
+  const o=document.getElementById('dgnTermsOut'); if(o) o.innerHTML='<table><tr><th>Term</th><th>Multiplier</th></tr>'+on.map(t=>'<tr><td>'+t[0]+'</td><td>&times;'+fmtBig(t[1])+'</td></tr>').join('')+'<tr><td><b>Total</b></td><td><b>&times;'+fmtBig(tot)+'</b></td></tr></table>'+(off.length?'<p class="note">At &times;1 for you right now: '+off.map(t=>t[0]).join(', ')+'.</p>':'')+(g('CurrentChallenge')==14?'<p class="note" style="color:var(--warn)">Hardest Challenge Ever is running: the game uses a shorter formula, so this total does not apply.</p>':'');
+  dgnAllRender();
+}
+['dgnPotion','dgnL8'].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener('input',()=>{ window.__dgnManual=false; dgnBonusFromSave(); }); });
+{ const e=document.getElementById('dgnBonus'); if(e) e.addEventListener('input',()=>{ window.__dgnManual=true; }); }
 ['dgnBonus','dgnManaStat','dgnGEStat','dgnHps'].forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener('input',dgnAllRender); });
 
 // ---- Town ----
@@ -2533,11 +2547,31 @@ recalcGen();
 // Real formula, confirmed from ReincarnationBonus.RBRefresh (ilsym) and reproduced to <0.1% of a live screenshot:
 // component% = rawFormula(stat) * M, summed across 4 components. M = ReincBonusBD * SReincBonus * (1+Triangle(perk)*0.1),
 // a ~15-20 term chain not individually modeled - entered directly, back-solved from any one known bonus%.
-function reincComponents(stage, mana, medit, de, m){
-  const stageB = (stage/3)*m;
+// ReincarnationBonus.RBRefresh (non-Challenge-14 branch): M = ReincBonusBD, every term from the save
+function reincMFromSave(d){
+  const g=k=>(d[k]!==undefined&&d[k]!==null)?(bdVal(d[k])||0):0, arr=k=>{ const v=d[k]; return v&&v._items?v._items.map(x=>bdVal(x)||0):[]; };
+  const ge=arr('generatorsEssence'), ec=g('CurrentEssenceBD'), gbb=g('generatorBonusBonus')||1, l15=E=>Math.log(E)/Math.log(15);
+  const g8=E=>E>1?Math.pow(3,l15(E)*0.2+1.6)*(2/3)*gbb:0;       // generator 8: weight 2/3
+  const sp=!!g('ExpSpecialGenerator1');                           // without the Exp Shop special the current part stays 100
+  const gcur=sp?100+g8(ec)/2:100, gper=100+g8(ge[8]||0);
+  const gear=(window.saveGear&&window.saveGear.P&&window.saveGear.P.ReincBonus)||0, gv2=arr('genV2Permanent'), bh=arr('blackHoleLevel');
+  const lay=i=>g('Layer'+i+'Bonus');
+  const T=[['Achievement trophies',1+g('AchievementTrophy')/2000],['Generator 8 (current)',gcur/100],['Generator 8 (permanent)',gper/100],
+    ['Trophy Reinc 50',1+0.5*g('ReincBonus50Bonus')],['Trophy Reinc 150',1+1.5*g('ReincBonus150Bonus')],['Synergy layer 10',1+lay(10)],
+    ['Pomos',Math.pow(1.005,g('PomosReincLevel'))],['Arena shop',1+g('ABReincBonus')],['Time Loop completions',1+g('Challenge6Completion')/10],
+    ['Reincarnation dungeon x Adventure level',g('ReincarnationBonus')/100*(1+g('AdventureSaveLevel')/20)],['Generator V2',1+(gv2[3]||0)/100],
+    ['Synergy layer 12',1+lay(12)],['Arena dungeon bonuses',1+g('ABDungeonBonuses')],['Black hole',1+(bh[2]||0)/20],['Cooking S row 3 buff',1+g('SRow3Buff')],
+    ['Cooking S row 3 permanent',1+g('SRow3Perma')],['Cultist',1+g('CultistDungeonBonusBonus')],['Romos',Math.pow(1.0025,g('RomosDungeonBonusesLevel'))],
+    ['Ancient Library',1+g('AncientLibraryLevel')/20],['Cooking line 17 buff',1+g('Line17Buff')],['Cooking row 6 permanent',1+g('Row6Perma')],['Equipment Reincarnation',1+gear/100]];
+  const sr=(g('SReincBonus')||1)*(1+(arr('page3Perks')[25]||0)*((arr('page3Perks')[25]||0)+1)/2*0.1);
+  return {M:T.reduce((a,t)=>a*t[1],1),terms:T,sr};
+}
+function reincComponents(stage, mana, medit, de, m, sr){
+  sr = (sr>0)?sr:(parseFloat((document.getElementById('reincSR')||{}).value)||1);
+  const stageB = (stage/3)*m*sr;
   const conjB = Math.pow(3, 0.25*Math.log10(Math.max(mana,1))+0.8)*m;
-  const meditB = (medit/3)*m;
-  const deB = de>0 ? Math.pow(3, 0.25*Math.log10(de)+2.3)*m : 0;
+  const meditB = (medit/3)*m*sr;
+  const deB = de>0 ? Math.pow(3, 0.25*Math.log10(de)+2.3)*m*sr : 0;
   return {stageB,conjB,meditB,deB,total:stageB+conjB+meditB+deB};
 }
 function recalcReinc(){
@@ -2551,7 +2585,8 @@ function recalcReinc(){
   const deNext = parseFloat(document.getElementById('reincDENext').value)||0;
   const mCur = parseFloat(document.getElementById('reincMCur').value)||0;
   const mNext = parseFloat(document.getElementById('reincMNext').value)||0;
-  const cur = reincComponents(stage, manaCur, meditCur, deCur, mCur);
+  let cur = reincComponents(stage, manaCur, meditCur, deCur, mCur);
+  { const L=window.__reincLife; if(L){ cur={stageB:L.s-100,conjB:L.c-100,meditB:L.m-100,deB:L.d-100,total:L.s+L.c+L.m+L.d-300}; } }
   const next = reincComponents(stageNext, manaNext, meditNext, deNext, mNext);
   const verdict = next.total > cur.total ? ' — <span style="color:#6c6">Next is higher, reincarnating now would be an upgrade</span>' : ' — <span style="color:#c66">Current is still higher, reincarnating now would be a downgrade</span>';
   document.getElementById('reincTotalOut').innerHTML = `${cur.total.toFixed(2)}% &nbsp;/&nbsp; ${next.total.toFixed(2)}%${verdict}`;
@@ -3097,10 +3132,12 @@ function chRenderTable(){
     const cur = Math.min(N, chCompletionCounts[num]||0);
     chCompletionCounts[num] = cur;
     const opts = Array.from({length:N+1},(_,i)=>`<option value="${i}" ${i===cur?'selected':''}>${i} / ${N}</option>`).join('');
-    return `<tr><td>${num}</td><td>${name}</td><td style="font-size:0.85em;color:var(--sub);">${desc}</td><td><select id="chN_${num}">${opts}</select></td><td id="chNext_${num}" style="font-size:0.85em;">${chNextText(num)}</td><td><button type="button" id="chBtn_${num}">${chOpen[num]?'Hide':'Details'}</button></td></tr>
-    <tr id="chDet_${num}" style="display:${chOpen[num]?'table-row':'none'};"><td colspan="6" id="chDetBody_${num}" style="font-size:0.85em;">${chOpen[num]?chDetailHtml(num):''}</td></tr>`;
+    return `<div class="chRow"><div class="chHead"><span class="chName">${name}</span><span class="chNum">#${num}</span><select id="chN_${num}">${opts}</select><button type="button" id="chBtn_${num}">${chOpen[num]?'Hide':'Details'}</button></div>
+      <div class="chNext"><b>Next:</b> <span id="chNext_${num}">${chNextText(num)}</span></div>
+      <div class="chReq">${desc}</div>
+      <div id="chDet_${num}" style="display:${chOpen[num]?'block':'none'};"><div id="chDetBody_${num}" style="font-size:0.85em;">${chOpen[num]?chDetailHtml(num):''}</div></div></div>`;
   }).join('');
-  document.getElementById('chTable').innerHTML = '<tr><th>#</th><th>Name</th><th>Engine prerequisite (from the game code)</th><th>Completions</th><th>Next goal</th><th></th></tr>' + rows;
+  document.getElementById('chTable').innerHTML = rows;
   chChallenges.forEach(([num])=>{
     document.getElementById('chN_'+num).addEventListener('change', (e)=>{
       chCompletionCounts[num] = parseInt(e.target.value) || 0;
@@ -3111,7 +3148,7 @@ function chRenderTable(){
     });
     document.getElementById('chBtn_'+num).addEventListener('click', ()=>{
       chOpen[num] = !chOpen[num];
-      document.getElementById('chDet_'+num).style.display = chOpen[num] ? 'table-row' : 'none';
+      document.getElementById('chDet_'+num).style.display = chOpen[num] ? 'block' : 'none';
       document.getElementById('chDetBody_'+num).innerHTML = chOpen[num] ? chDetailHtml(num) : '';
       document.getElementById('chBtn_'+num).textContent = chOpen[num] ? 'Hide' : 'Details';
     });
@@ -3392,9 +3429,9 @@ sfsRender();
 var odIn=[
  ['trainO','Training damage',0,null,'bd:TrainingDamageBD'],
  ['trainD','Training defense',0,null,'bd:TrainingDefenseBD'],
- ['c2','Challenge 2 completions',0,1,'n:SecondChallengeCompletion'],
- ['c5','Challenge 5 completions',0,1,'n:Challenge5Completion'],
- ['c9','Challenge 9 completions',0,1,'n:Challenge9Completion'],
+ ['c2','Inferno completions',0,1,'n:SecondChallengeCompletion'],
+ ['c5','Blade Storm completions',0,1,'n:Challenge5Completion'],
+ ['c9','Air Elemental completions',0,1,'n:Challenge9Completion'],
  ['demUp','Demonic Upgrade: Spell Efficiency level',0,1,'n:DemonicUpgradeTrainingLevel'],
  ['sp25','Trophy Spell 25 bonus',0,null,'n:Spell25Bonus'],
  ['sp100','Trophy Spell 100 bonus',0,null,'n:Spell100Bonus'],
@@ -3941,8 +3978,8 @@ const clSp=[['Abraca','c',20,clCl(4.647,1.95,100),1],['Hocus','c',20,clCl(4.647,
 ['Jantar Mantar','c',250000,clCl(50.637,2.7,70,7),5],['Shaba','c',250000,clCl(50.637,2.7,70,7),5],
 ['Dabra','m',100000,20,10],['Pocus','m',250000,20,12],['Sesame','m',500000,20,14],['Wizzy','m',1000000,20,16],['Labim','m',2000000,20,18],['Azam','m',3500000,2,20],
 ['Crappis','a',1e7,1e7,22],['Bobbidi','a',1.5e7,1.5e7,25],['Jadu Mantar','a',2e7,2e7,30],['Labala','a',3e7,3e7,40]];
-const clIn=[['cap','Mana Limit this life',2.257e11],['cap2','Mana Limit next life',2.553e11],['san','Sanctuary bonus %',81],['dg','Demon Gem Conjuring bonus %',165],['cc','Conjurer cost reduction (0.085 = 8.5%)',0.085],['c4','Challenge 4 bonus %',85],
-['yb','Flat demons per spell level (Challenge 3 + Demon Market + Conjurer perma + trophies)',11],['mkt','Demon Market level',3],['dg1','Offense/Defense % per demon',3.126],['mc','Reincarnation bonus % now',231015.36],['mn','Reincarnation bonus % next',273247.76],['cur','Demons made this life (check)',9784],['inc','Mana generated per second (0 = unknown; see the mana bar tooltip)',0],['ats','Auto-Conjuring speed (Soul Shop tier 0 to 3)',1],['life','Seconds into this life (LifeTime)',0],['sl','Stats Meditation level now',205],['ss','Stats Meditation demons now',1672],['mk','Meditation exp per second per demon (about 1.0e12 in your last saves)',1e12],['tt','Seconds between mana refills (Mana tick; refills the pool to the limit)',1.614]];
+const clIn=[['cap','Mana Limit this life',2.257e11],['cap2','Mana Limit next life',2.553e11],['san','Sanctuary bonus %',81],['dg','Demon Gem Conjuring bonus %',165],['cc','Conjurer cost reduction (0.085 = 8.5%)',0.085],['c4','No Conjuring bonus %',85],
+['yb','Flat demons per spell level (Demons Master + Demon Market + Conjurer perma + trophies)',11],['mkt','Demon Market level',3],['dg1','Offense/Defense % per demon',3.126],['mc','Reincarnation bonus % now',231015.36],['mn','Reincarnation bonus % next',273247.76],['cur','Demons made this life (check)',9784],['inc','Mana generated per second (0 = unknown; see the mana bar tooltip)',0],['ats','Auto-Conjuring speed (Soul Shop tier 0 to 3)',1],['life','Seconds into this life (LifeTime)',0],['sl','Stats Meditation level now',205],['ss','Stats Meditation demons now',1672],['mk','Meditation exp per second per demon (about 1.0e12 in your last saves)',1e12],['tt','Seconds between mana refills (Mana tick; refills the pool to the limit)',1.614]];
 const clP={}; clIn.forEach(a=>clP[a[0]]=a[2]);
 function clFac(P){ return (P.san/100)/(P.dg/100)/(1+P.cc)*P.c4/100; }
 function clWall(sp,C,fac,acc){ let L=0,c=sp[2]; const cap=sp[5]||2000;
@@ -4122,7 +4159,7 @@ function plLoad(d){
   try{ bmLoad(d); }catch(e){}
   try{ clLoad(d); }catch(e){}
   try{ evLoad(d); }catch(e){}
-  try{ const it=d.Training&&d.Training._items; if(it){ let mm=0; for(let i=0;i<22;i++){ const o=it[i]; if(!o) continue; const a=document.getElementById('tsLvl'+i), b=document.getElementById('tsMana'+i); if(a) a.value=bdVal(o.Level); if(b&&o.ManaBD!==undefined) b.value=bdVal(o.ManaBD); if(!mm&&o.ValueBD&&o.BonusBD&&bdVal(o.ValueBD)>0){ mm=bdVal(o.BonusBD)/bdVal(o.ValueBD); } } if(mm>0){ const me=document.getElementById('tsMult'); if(me) me.value=Number(mm.toPrecision(8)); } if(typeof recalcTrueSpell==='function') recalcTrueSpell(); } }catch(e){}
+  try{ const it=d.Training&&d.Training._items; if(it){ let mm=0; for(let i=0;i<22;i++){ const o=it[i]; if(!o) continue; const a=document.getElementById('tsLvl'+i), b=document.getElementById('tsMana'+i); if(a) a.value=bdVal(o.Level); if(b&&o.ManaBD!==undefined) b.value=bdVal(o.ManaBD); if(!mm&&o.ValueBD&&o.BonusBD&&bdVal(o.ValueBD)>0){ mm=bdVal(o.BonusBD)/bdVal(o.ValueBD); } } if(mm>0){ const me=document.getElementById('tsMult'); if(me) me.value=Number(mm.toPrecision(8)); } try{ const g=k=>(d[k]!==undefined&&d[k]!==null)?(bdVal(d[k])||0):0; const hs=(d.levelHellSpiritShop&&d.levelHellSpiritShop._items)?(bdVal(d.levelHellSpiritShop._items[3])||0):0; const A={c2:g('SecondChallengeCompletion'),c5:g('Challenge5Completion'),c9:g('Challenge9Completion'),du:g('DemonicUpgradeTrainingLevel'),hs:hs}; window.__tsAcc=A; [['tsC2','c2'],['tsC5','c5'],['tsC9','c9'],['tsDU','du'],['tsHS','hs']].forEach(([id,k])=>{ const e=document.getElementById(id); if(e) e.value=A[k]; }); }catch(e){} if(typeof recalcTrueSpell==='function') recalcTrueSpell(); } }catch(e){}
 }
 plBuild(); odBuild(); odRender();
 plRender();
@@ -5090,7 +5127,8 @@ function importExtra(d, filled){
     if(LS!==undefined&&st>0){ const M=(LS-100)/(st/3); set('reincMCur',M); if(LC!==undefined&&M>0){ const r=(LC-100)/M; if(r>0) set('reincManaCur',Math.pow(10,(Math.log(r)/Math.log(3)-0.8)/0.25)); } if(LM!==undefined&&M>0) set('reincMeditCur',(LM-100)/M*3); }
     if(g('ConjuringTotalManaSpentBD')!==undefined) set('reincManaNext',g('ConjuringTotalManaSpentBD')); if(g('totalMeditationLevel')!==undefined) set('reincMeditNext',g('totalMeditationLevel'));
     const nr=gz('Challenge11Completion')>=1.9; set('reincDECur',0); set('reincDENext',nr?gz('DELifeBD'):0); window.__deLife=gz('DELifeBD');
-    const Mest=parseFloat((document.getElementById('prp_Mest')||{}).value); if(Mest>0) set('reincMNext',Mest);
+    try{ const RM=reincMFromSave(d); window.__reincM=RM; set('reincMNext',RM.M); set('reincSR',RM.sr); window.__reincLife={s:LS||100,c:LC||100,m:LM||100,d:g('LifeDEBonusBD')||100}; if(LS!==undefined&&st>0) set('reincMCur',(LS-100)/(st/3)/RM.sr);
+      const mt=document.getElementById('reincMTerms'); if(mt) mt.innerHTML='<b>M now = ×'+fmtBig(RM.M)+'</b> ('+RM.terms.filter(t=>Math.abs(t[1]-1)>1e-9).map(t=>t[0]+' ×'+fmtBig(t[1])).join(', ')+'). M when you last reincarnated was ×'+fmtBig((LS-100)/(st/3)/RM.sr)+'; the difference is timed buffs and things you bought since.'; }catch(e){ console.log('reincM',e); }
     if(typeof recalcReinc==='function') recalcReinc(); done.push('Reincarnation (current from stored life bonuses, next from this life; next M estimated from save levels)'); }
   // Baby Demons: assignments, speed multiplier, Plaza perk rate
   { const f=['HellSpiritCurrentBaby','DemonicEssenceCurrentBaby','PlazaPerkCurrentBaby','FishingEnduranceCurrentBaby','GenealogyExpCurrentBaby','ArenaTokenCurrentBaby','DumpTokenCurrentBaby','SynergyEssenceCurrentBaby'];
@@ -5277,6 +5315,7 @@ function advDpsFromSave(d){
 function slimeImport(d){ try{ synImport(d); const S=slimeCalc(d); window.saveSlimes=S; const f=id=>S.eff[id]!==undefined?S.eff[id]:1; { const k=f(35)*((typeof alValue==='function'&&typeof alMixes!=='undefined')?alValue(35,alMixes[35]||0):1); if(k>0&&k!==1) ['pzpMulti','prp_mult'].forEach(id=>{ const e=document.getElementById(id); const v=parseFloat(e&&e.value); if(e&&v>0) e.value=+(v*k).toPrecision(8); }); try{ if(typeof recalcPzp==='function') recalcPzp(); }catch(e){} } /* PlazaPrestige.PerksBonus: GetBonusMultiMood(35) x GetBonusValue(35) */
     if(typeof odSet==='function'){ odSet('mood9',f(9)); if(typeof odRender==='function') odRender(); } { const e=document.getElementById('bdMood'); if(e){ e.value=Math.round((S.eff[10]||0)*1e4)/1e4; e.dispatchEvent(new Event('input')); } }
     { const sp=f(15), rs=f(19); const set1=(id,v)=>{ const e=document.getElementById(id); if(e&&isFinite(v)) e.value=Math.abs(v)>=1e7?Number(v).toExponential(4):Math.round(v*10000)/10000; };
+      [[16,'prp_glog'],[17,'prp_gore'],[18,'prp_ggem']].forEach(([id,el])=>{ const a=S.eff[id]; const e=document.getElementById(el); if(e&&a>0) set1(el,(parseFloat(e.value)||0)+a); }); // waifu flat Log/Ore/Gem adds (GetBonusAddMood 16-18)
       set1('prp_ospd',sp); [0,1,2].forEach(i=>{ const e=document.getElementById('gathRate'+i); if(e&&parseFloat(e.value)>0&&sp!==1) set1('gathRate'+i,parseFloat(e.value)*sp); });
       { const fk=k=>(d[k]!==undefined&&d[k]!==null)?(bdVal(d[k])||0):0; const sk=fk('FishingSkill'); let nF=0; for(let i=1;i<=40;i++) if(fk('Fish'+i)>0) nF=i; const e=document.getElementById('fishMasteryPerCatch');
         if(e&&sk>0&&nF>0&&fk('CurrentBait')===0){ const gear=(window.saveGear&&window.saveGear.P&&window.saveGear.P.FishingMastery)||0; const p3=(d.page3Perks&&d.page3Perks._items)?(bdVal(d.page3Perks._items[20])||0):0;
@@ -5327,7 +5366,7 @@ function gearUiInit(){ const opts=Object.keys(GEAR_LABEL).map(k=>'<option value=
 function processSaveData(d, statusEl){
   const before=new Map(); document.querySelectorAll('input[id],select[id],textarea[id]').forEach(el=>before.set(el.id,[el,el.type==='checkbox'?el.checked:el.value]));
   window.__saveWrites=new Set();
-  try{ const ret=processSaveData0(d, statusEl); try{ gearImport(d); }catch(e){ console.log('gearImport',e); } slimeImport(d); try{ const M=mprFromSave(d); window.mprSave=M; window.__advD=d; try{ const dp=advDpsFromSave(d), e=document.getElementById('advDps'); if(e&&dp>0&&isFinite(dp)){ e.value=Math.round(dp); } }catch(e){ console.log('advDps',e); } try{ const pa=d.SAdvSlimePartyData&&(d.SAdvSlimePartyData._items||d.SAdvSlimePartyData); if(pa){ const e=document.getElementById('advRes'); if(e){ e.value=+pa.filter(Boolean).reduce((a,s)=>a+(bdVal(s.ResourceBonus)||0),0).toFixed(4); } } if(typeof recalcAdvFarm==='function') recalcAdvFarm(); }catch(e){ console.log('advRes',e); } try{ window.saveRB={held:bdVal(d.ReincarnateBonusBD)||0, ch11:bdVal(d.Challenge11Completion)||0, ch6:bdVal(d.Challenge6Completion)||0, plazaSave:bdVal(d.PlazaSavePerk)||0, druidLv:bdVal(d.DruidLevel)||0, druidRef:bdVal(d.DruidManaRef)||0, druidBonus:bdVal(d.DruidManaRefBonus)||0}; try{ const tp=parseFloat((document.getElementById('tsManaPower')||{}).value)||0, mm=M&&M.mpt||0, ge=(bdVal(d.MonsterGoldRewardDisplayBD)||0)+(bdVal(d.MonsterExpRewardDisplayBD)||0); const e1=document.getElementById('dgnManaStat'), e2=document.getElementById('dgnGEStat'); if(e1&&mm>0) e1.value=(mm+tp).toExponential(4); if(e2&&ge>0) e2.value=ge.toExponential(4); dgnAllRender(); }catch(e){} try{ const R=window.saveRB, nv=id=>parseFloat((document.getElementById(id)||{}).value)||0; if(R.held>0){ let nx=reincComponents(nv('reincStageNext'),nv('reincManaNext'),nv('reincMeditNext'),R.ch11>=1.9?nv('reincDENext'):0,nv('reincMNext')).total; if(R.ch6>=3) nx=Math.max(nx,R.held); const c1=document.getElementById('cl_mc'), c2=document.getElementById('cl_mn'); if(c1) c1.value=+R.held.toPrecision(8); if(c2&&nx>0) c2.value=+nx.toPrecision(8); try{ clRender(); }catch(e){} } }catch(e){} try{ const hb=window.saveRB.held; const e=document.getElementById('prp_rbT'); if(e&&hb>0){ e.value=(hb*1.25).toExponential(3); } }catch(e){} }catch(e){} try{ const cc=bdVal(d.CurrentChallenge)||0, tc=document.getElementById('townChallenge'); if(tc){ tc.value=(cc===14||cc===12)?String(cc):'none'; tc.dispatchEvent(new Event('change')); } }catch(e){} try{ const mp=manaPowerFromSave(d,M); const e=document.getElementById('tsManaPower'); if(e&&mp>0&&isFinite(mp)){ e.value=mp.toExponential(4); e.dispatchEvent(new Event('input')); } }catch(e){ console.log('manaPowerFromSave',e); } try{ const R=meditFromSave(d,M); R.forEach((v,i)=>{ const e=document.getElementById('meditRate'+i); if(e&&v>0&&isFinite(v)){ e.value=v.toExponential(4); e.dispatchEvent(new Event('input')); } }); }catch(e){ console.log('meditFromSave',e); } const e=document.getElementById('prp_mpr'); if(e&&M.mpt>0&&isFinite(M.mpt)){ e.value=M.mpt.toExponential(4); } const r=document.getElementById('prp_rt'); if(r&&M.tick>0&&isFinite(M.tick)) r.value=+(M.tick/100).toFixed(3); prpCalc(); try{ const c=window.prpLast&&window.prpLast.cur, sp=document.getElementById('prp_spree'), nv=id=>parseFloat((document.getElementById(id)||{}).value)||0; if(c&&sp&&!sp.checked){ const bar=nv('prp_mpr')/Math.max(nv('prp_rt'),1e-9)*3600, other=Math.min.apply(null,c.lim.slice(1).filter(isFinite)); if(bar>100*c.cost[0]*other){ sp.checked=true; prpCalc(); } } }catch(e){} try{ recGoalRender(); }catch(e){} }catch(e){ console.log('mprFromSave',e); } try{ gearBest(); gearDbRender(); }catch(e){} return ret; } finally { const w=window.__saveWrites; window.__saveWrites=null;
+  try{ const ret=processSaveData0(d, statusEl); try{ gearImport(d); }catch(e){ console.log('gearImport',e); } slimeImport(d); try{ const M=mprFromSave(d); window.mprSave=M; window.__advD=d; try{ const dp=advDpsFromSave(d), e=document.getElementById('advDps'); if(e&&dp>0&&isFinite(dp)){ e.value=Math.round(dp); } }catch(e){ console.log('advDps',e); } try{ const pa=d.SAdvSlimePartyData&&(d.SAdvSlimePartyData._items||d.SAdvSlimePartyData); if(pa){ const e=document.getElementById('advRes'); if(e){ e.value=+pa.filter(Boolean).reduce((a,s)=>a+(bdVal(s.ResourceBonus)||0),0).toFixed(4); } } if(typeof recalcAdvFarm==='function') recalcAdvFarm(); }catch(e){ console.log('advRes',e); } try{ window.saveRB={held:bdVal(d.ReincarnateBonusBD)||0, ch11:bdVal(d.Challenge11Completion)||0, ch6:bdVal(d.Challenge6Completion)||0, plazaSave:bdVal(d.PlazaSavePerk)||0, druidLv:bdVal(d.DruidLevel)||0, druidRef:bdVal(d.DruidManaRef)||0, druidBonus:bdVal(d.DruidManaRefBonus)||0}; try{ const tp=parseFloat((document.getElementById('tsManaPower')||{}).value)||0, mm=M&&M.mpt||0, ge=(bdVal(d.MonsterGoldRewardDisplayBD)||0)+(bdVal(d.MonsterExpRewardDisplayBD)||0); const e1=document.getElementById('dgnManaStat'), e2=document.getElementById('dgnGEStat'); if(e1&&mm>0) e1.value=(mm+tp).toExponential(4); if(e2&&ge>0) e2.value=ge.toExponential(4); window.__dgnManual=false; dgnBonusFromSave(); dgnAllRender(); }catch(e){ console.log('dgn',e); } try{ const R=window.saveRB, nv=id=>parseFloat((document.getElementById(id)||{}).value)||0; if(R.held>0){ let nx=reincComponents(nv('reincStageNext'),nv('reincManaNext'),nv('reincMeditNext'),R.ch11>=1.9?nv('reincDENext'):0,nv('reincMNext')).total; if(R.ch6>=3) nx=Math.max(nx,R.held); const c1=document.getElementById('cl_mc'), c2=document.getElementById('cl_mn'); if(c1) c1.value=+R.held.toPrecision(8); if(c2&&nx>0) c2.value=+nx.toPrecision(8); try{ clRender(); }catch(e){} } }catch(e){} try{ const hb=window.saveRB.held; const e=document.getElementById('prp_rbT'); if(e&&hb>0){ e.value=(hb*1.25).toExponential(3); } }catch(e){} }catch(e){} try{ const cc=bdVal(d.CurrentChallenge)||0, tc=document.getElementById('townChallenge'); if(tc){ tc.value=(cc===14||cc===12)?String(cc):'none'; tc.dispatchEvent(new Event('change')); } }catch(e){} try{ const mp=manaPowerFromSave(d,M); const e=document.getElementById('tsManaPower'); if(e&&mp>0&&isFinite(mp)){ e.value=mp.toExponential(4); e.dispatchEvent(new Event('input')); } }catch(e){ console.log('manaPowerFromSave',e); } try{ const R=meditFromSave(d,M); R.forEach((v,i)=>{ const e=document.getElementById('meditRate'+i); if(e&&v>0&&isFinite(v)){ e.value=v.toExponential(4); e.dispatchEvent(new Event('input')); } }); }catch(e){ console.log('meditFromSave',e); } const e=document.getElementById('prp_mpr'); if(e&&M.mpt>0&&isFinite(M.mpt)){ e.value=M.mpt.toExponential(4); } const r=document.getElementById('prp_rt'); if(r&&M.tick>0&&isFinite(M.tick)) r.value=+(M.tick/100).toFixed(3); prpCalc(); try{ const c=window.prpLast&&window.prpLast.cur, sp=document.getElementById('prp_spree'), nv=id=>parseFloat((document.getElementById(id)||{}).value)||0; if(c&&sp&&!sp.checked){ const bar=nv('prp_mpr')/Math.max(nv('prp_rt'),1e-9)*3600, other=Math.min.apply(null,c.lim.slice(1).filter(isFinite)); if(bar>100*c.cost[0]*other){ sp.checked=true; prpCalc(); } } }catch(e){} try{ recGoalRender(); }catch(e){} }catch(e){ console.log('mprFromSave',e); } try{ gearBest(); gearDbRender(); }catch(e){} return ret; } finally { const w=window.__saveWrites; window.__saveWrites=null;
     document.querySelectorAll('input[id],select[id],textarea[id]').forEach(el=>{ const b=before.get(el.id); if(!b||b[0]!==el||b[1]!==(el.type==='checkbox'?el.checked:el.value)) w.add(el.id); });
     ['saveFileInput','tabSelect'].forEach(x=>w.delete(x)); markSaveFields(w, String(d.SaveTime||d.saveTime||'').slice(0,16).replace('T',' ')); } }
 function processSaveData0(d, statusEl){
@@ -5483,10 +5522,7 @@ function processSaveData0(d, statusEl){
   filled.push('Combined Summon Bonus multiplier (partial - known terms only, see gap-note)');
 
   // Dungeon
-  if (d.TrainingDamageBD !== undefined){ document.getElementById('dgnDmg').value = bdVal(d.TrainingDamageBD); }
-  if (d.TrainingDefenseBD !== undefined){ document.getElementById('dgnDef').value = bdVal(d.TrainingDefenseBD); }
-  recalcDgn();
-  filled.push('Dungeon training stats');
+
 
   // Exp Shop: save stores current PRICE (BigDouble), formula is price=20+bought*20, so bought=(price/20)-1
   const expSaveFields = ['BuyLimitPriceBD','BuyRefillPriceBD','BuyPowerPriceBD'];
@@ -5802,7 +5838,7 @@ spellList.forEach((s,i)=>{
 function recalcSpell(){
   const freeMana = parseFloat(document.getElementById('spellFreeMana').value)||0;
   document.getElementById('spellFreeManaOut').textContent = fmtBig(freeMana);
-  // Mana actually paid per level = listed cost x Sanctuary/100 / (Demon Gem Conjuring bonus/100) / (1+Conjurer cost) x Challenge 4 bonus/100 (AbracaSpell.AbracaTick)
+  // Mana actually paid per level = listed cost x Sanctuary/100 / (Demon Gem Conjuring bonus/100) / (1+Conjurer cost) x No Conjuring bonus/100 (AbracaSpell.AbracaTick)
   let cjF=1; try{ clRead(); cjF=clFac(clP); if(!(cjF>0)||!isFinite(cjF)) cjF=1; }catch(e){}
   const rows = spellList.map((s,i)=>{
     const cost = (parseFloat(document.getElementById('spellCost'+i).value)||0)*cjF;
@@ -5867,14 +5903,14 @@ const CAP_LEVELS_PER_SEC = 50;
 // unlock), with real drift only showing up at the three highest tiers (e.g. Summon Dragon 2538
 // vs Charm 2537) - consistent with the cap theory, not a measurement error.
 const tsSpellList = [
-  {tier:0, name:'Magic Missile', stat:'Offense', perLevel:2,        expX:100,          level:1.231e7, mana:1000},
-  {tier:0, name:'Blur',          stat:'Defense', perLevel:2,        expX:100,          level:1.231e7, mana:1000},
-  {tier:1, name:'Fire Bolt',     stat:'Offense', perLevel:12,       expX:1500,         level:1.231e7, mana:1000},
-  {tier:1, name:'Gust of Wind',  stat:'Defense', perLevel:12,       expX:1500,         level:1.231e7, mana:1000},
-  {tier:2, name:'Lightning Bolt',stat:'Offense', perLevel:100,      expX:45000,        level:1.231e7, mana:1000},
-  {tier:2, name:'Stoneskin',     stat:'Defense', perLevel:100,      expX:45000,        level:1.231e7, mana:1000},
-  {tier:3, name:'Poison Cloud',  stat:'Offense', perLevel:900,      expX:1500000,      level:1.231e7, mana:1000},
-  {tier:3, name:'Blink',         stat:'Defense', perLevel:900,      expX:1500000,      level:1.231e7, mana:1000},
+  {tier:0, name:'Disintegrate Water', stat:'Offense', perLevel:2,        expX:100,          level:1.231e7, mana:1000},
+  {tier:0, name:'Invisibility',  stat:'Defense', perLevel:2,        expX:100,          level:1.231e7, mana:1000},
+  {tier:1, name:'Fire Ball',     stat:'Offense', perLevel:12,       expX:1500,         level:1.231e7, mana:1000},
+  {tier:1, name:'Telekinesis',  stat:'Defense', perLevel:12,       expX:1500,         level:1.231e7, mana:1000},
+  {tier:2, name:'Chain Lightning',stat:'Offense', perLevel:100,      expX:45000,        level:1.231e7, mana:1000},
+  {tier:2, name:'Ethereal Form',     stat:'Defense', perLevel:100,      expX:45000,        level:1.231e7, mana:1000},
+  {tier:3, name:'Acid Bath',  stat:'Offense', perLevel:900,      expX:1500000,      level:1.231e7, mana:1000},
+  {tier:3, name:'Teleport',      stat:'Defense', perLevel:900,      expX:1500000,      level:1.231e7, mana:1000},
   {tier:4, name:'Ice Lance',     stat:'Offense', perLevel:8000,     expX:5e7,          level:1.231e7, mana:1000},
   {tier:4, name:'Ice Wall',      stat:'Defense', perLevel:8000,     expX:5e7,          level:1.231e7, mana:1000},
   {tier:5, name:'Sleep',         stat:'Offense', perLevel:100000,   expX:2.2e9,        level:3.379e6, mana:1000},
@@ -5906,7 +5942,10 @@ tsSpellList.forEach((s,i)=>{
   ['tsLvl','tsMana','tsPL','tsX'].forEach(p=>document.getElementById(p+i).addEventListener('input', recalcTrueSpell));
 });
 function recalcTrueSpell(){
-  const mult = parseFloat(document.getElementById('tsMult').value) || 0;
+  const accF=a=>(a.c2/2+1)*(a.c5+1)*(1+1.5*a.c9)*(a.du+1)*(a.hs+1);
+  const accNow={c2:+document.getElementById('tsC2').value||0,c5:+document.getElementById('tsC5').value||0,c9:+document.getElementById('tsC9').value||0,du:+document.getElementById('tsDU').value||0,hs:+document.getElementById('tsHS').value||0};
+  const accSave=window.__tsAcc||accNow, accRatio=accF(accNow)/accF(accSave);
+  const mult = (parseFloat(document.getElementById('tsMult').value) || 0)*accRatio;
   const manaPower = parseFloat(document.getElementById('tsManaPower').value) || 0;
   const rows = tsSpellList.map((s,i)=>{
     const level = parseFloat(document.getElementById('tsLvl'+i).value)||0;
@@ -5930,6 +5969,9 @@ function recalcTrueSpell(){
         : `<span style="color:var(--accent2)">${fmtEff(levelsPerSec)} levels/sec, below cap — needs <b>${fmtBig(shortfall)}</b> more mana to reach it</span>`);
     return {name:s.name, stat:s.stat, level, mana, perLevel, bonus, atCap, levelsPerSec, manaToCap, pullable, shortfall};
   });
+  { const o=document.getElementById('tsAccOut'); if(o){ const tot=st=>rows.filter(r=>r.stat===st).reduce((a,r)=>a+r.bonus,0);
+      const step=(k,lab,f2)=>{ const n=Object.assign({},accNow); n[k]+=1; return lab+': ×'+(accF(n)/accF(accNow)).toFixed(3); };
+      o.innerHTML='Multiplier on every spell now: <b>×'+fmtBig(mult)+'</b>'+(accRatio!==1?' (the save had ×'+fmtBig(mult/accRatio)+')':'')+'. It is (Inferno/2 + 1) × (Blade Storm + 1) × (1 + 1.5 × Air Elemental) × (Spell Efficiency DU + 1) × (Spell Efficiency Hell Spirit + 1) × your trophies. One more completion or level gives: '+[step('c2','Inferno'),step('c5','Blade Storm'),step('c9','Air Elemental'),step('du','Demonic Spell Efficiency'),step('hs','Hell Spirit Spell Efficiency')].join(' · ')+'. Spell Offense total <b>'+fmtBig(tot('Offense'))+'</b>, Defense total <b>'+fmtBig(tot('Defense'))+'</b>.'; } }
   function tsFeedList(){
     // Spells still below the 50/sec cap: ranked by how much more mana each needs to reach it
     // (smallest shortfall first - cheapest way to buy a full extra 50/sec of leveling).
@@ -5957,7 +5999,7 @@ function recalcTrueSpell(){
   const feedTop = rows.filter(r=>!r.atCap).slice().sort((a,b)=>a.shortfall-b.shortfall)[0];
   return {feedTop};
 }
-document.getElementById('tsMult').addEventListener('input', recalcTrueSpell);
+document.getElementById('tsMult').addEventListener('input', recalcTrueSpell); ['tsC2','tsC5','tsC9','tsDU','tsHS'].forEach(id=>document.getElementById(id).addEventListener('input', recalcTrueSpell));
 document.getElementById('tsManaPower').addEventListener('input', recalcTrueSpell);
 recalcTrueSpell();
 
