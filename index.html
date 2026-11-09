@@ -124,7 +124,7 @@ td,th{overflow-wrap:anywhere;}
 </head>
 <body>
 <div class="wrap">
-  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v230 · 2026-11-09</span></h1>
+  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v231 · 2026-11-09</span></h1>
   <div id="saveBanner">The numbers on this page are <b>example values</b>, not your game. Load your save (Load Save tab, the first one) to replace them with yours.</div>
   <p class="sub">Formulas pulled directly from the game's compiled code + your save. Covers what's been fully verified so far — more tabs get added as more systems get decoded.</p>
 
@@ -6737,7 +6737,7 @@ recalcRecommend();
   window.addEventListener('message',async e=>{ const m=e.data; if(!fr||e.source!==fr.contentWindow||!m||m.type!=='wami-download') return;
     const reply=msg=>fr.contentWindow.postMessage({type:'wami-download-result',msg},'*');
     try{ const dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null;
-      if(!dl){ reply('Download is not available here. Use Copy to clipboard instead.'); return; }
+      if(!dl){ const url=URL.createObjectURL(new Blob([String(m.data||'')],{type:'text/plain'})); const a=document.createElement('a'); a.href=url; a.download=String(m.filename||'WAMISave_edited.txt'); document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); reply('Downloaded '+(m.filename||'WAMISave_edited.txt')+'.'); return; }
       await dl.save({filename:String(m.filename||'WAMISave_edited.txt'),data:String(m.data||'')}); reply('Saved as '+m.filename+'.'); }
     catch(err){ const c=err&&err.code; reply(c==='declined'?'Download cancelled.':'Download failed ('+(c||'error')+'). Use Copy to clipboard.'); } });
   const sel=document.getElementById('tabSelect');
