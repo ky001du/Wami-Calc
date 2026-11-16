@@ -143,7 +143,7 @@ td,th{overflow-wrap:anywhere;}
 </head>
 <body>
 <div class="wrap">
-  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v282 · 2026-11-16</span></h1>
+  <h1>Wizard and Minion Idle — Optimizer <span id="appVersion" style="font-size:0.6rem;font-weight:400;color:var(--sub);vertical-align:middle;border:1px solid var(--border);border-radius:10px;padding:2px 8px;">v283 · 2026-11-16</span></h1>
   <div id="saveBanner">The numbers on this page are <b>example values</b>, not your game. Load your save (Load Save tab, the first one) to replace them with yours.</div>
   <p class="sub">Formulas pulled directly from the game's compiled code + your save. Covers what's been fully verified so far — more tabs get added as more systems get decoded.</p>
 
@@ -7047,8 +7047,8 @@ recalcRecommend();
     const L=[]; for(let i=0;i<21;i++){ const o=i*9; L.push({lv:v[o],exp:v[o+1],baby:v[o+3],prog:v[o+4],pow:v[o+6],bonus:v[o+7],un:!!un[i]}); }
     return {L,pool:Math.round(g('babyWorking')+g('CurrentBabySlaves')),expGain:g('synergyExpGain')||1,powGain:g('synergyPowGain')||1,eGain:g('synergyEssenceGain')||1,en:[g('sinEnergyCurrent'),g('cosEnergyCurrent'),g('tanEnergyCurrent')],spd:1+g('SynergySpeed5Bonus')+g('SynergySpeed10Bonus')};
   }
-  function sim(S,alloc,Hh,mul){
-    const N=200, dt=Hh*3600/N, P=S.spd*mul;
+  function sim(S,alloc,Hh,mul,N0){
+    const N=N0||200, dt=Hh*3600/N, P=S.spd*mul;
     const comp=new Array(21).fill(0), lv=S.L.map(l=>l.lv), ex=S.L.map(l=>l.exp), pw=S.L.map(l=>l.pow), pr=S.L.map(l=>l.prog);
     for(let st=0;st<N;st++){
       for(let i=0;i<21;i++){ const n=alloc[i]; if(!(n>0)||!S.L[i].un) continue;
@@ -7072,20 +7072,23 @@ recalcRecommend();
   function score(R,w){ let u=0; for(let i=0;i<21;i++) if(w[i]>0) u+=w[i]*Math.log(1+R.bon[i]); return u; }
   function buildW(){ const e=document.getElementById('spW'); if(e.dataset.b) return; e.dataset.b=1;
     e.innerHTML='<details class="cbd"><summary>Layer weights (how much you care about each bonus)</summary><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 12px">'+NAMES.map((n,i)=>'<label style="display:flex;justify-content:space-between;gap:6px;font-size:13px">'+(i+1)+'. '+n+'<input type="number" class="spw" data-i="'+i+'" value="'+W0[i]+'" min="0" step="0.5" style="width:60px"></label>').join('')+'</div></details>'; }
-  function run(){
-    const out=document.getElementById('spOut'); buildW(); const S=read();
+  async function run(){
+    const out=document.getElementById('spOut'); const btn=document.getElementById('spRun'); if(btn&&btn.dataset.busy) return; buildW(); const S=read();
     if(!S){ out.innerHTML='<div class="note">Load a save first (it needs your Synergy layers).</div>'; return; }
     const H=+document.getElementById('spH').value, step=Math.max(1,parseInt(document.getElementById('spStep').value)||10), mul=+document.getElementById('spMul').value||1;
     const w=W0.slice(); document.querySelectorAll('.spw').forEach(e=>{ w[+e.dataset.i]=+e.value||0; });
     const cur=S.L.map(l=>l.un?l.baby:0), total=cur.reduce((a,b)=>a+b,0); const pool=Math.max(S.pool,total);
     const spare=pool-total; const t0=Date.now();
     let A=cur.slice(); A[S.L.findIndex(l=>l.un)]+=spare; // spare demons start on the first unlocked layer
-    const base=sim(S,cur,H,mul); let R=sim(S,A,H,mul), best=score(R,w), moves=0;
+    if(btn){ btn.dataset.busy=1; btn.disabled=true; }
+    const NS=40; let R=sim(S,A,H,mul,NS), best=score(R,w), moves=0;
     const idx=S.L.map((l,i)=>i).filter(i=>S.L[i].un);
-    while(moves<400&&Date.now()-t0<20000){ let bi=-1,bj=-1,bs=best,bR=null;
-      for(const a of idx){ if(A[a]<=0) continue; const m=Math.min(step,A[a]);
-        for(const b of idx){ if(a===b) continue; A[a]-=m; A[b]+=m; const r=sim(S,A,H,mul), sc=score(r,w); A[a]+=m; A[b]-=m; if(sc>bs+1e-9){ bs=sc; bi=a; bj=b; bR=r; } } }
-      if(bi<0) break; const m=Math.min(step,A[bi]); A[bi]-=m; A[bj]+=m; best=bs; R=bR; moves++; }
+    const phases=[...new Set([Math.max(step,Math.round(pool/15)),Math.max(step,Math.round(pool/80)),step])].sort((x,y)=>y-x);
+    for(const stp of phases){ while(moves<600&&Date.now()-t0<30000){ out.innerHTML='<div class="note">Planning... '+moves+' moves so far (the page stays usable).</div>'; await new Promise(r=>setTimeout(r,0)); let bi=-1,bj=-1,bs=best,bR=null;
+      for(const a of idx){ if(A[a]<=0) continue; const m=Math.min(stp,A[a]);
+        for(const b of idx){ if(a===b||!(w[b]>0||w[a]>0)) continue; A[a]-=m; A[b]+=m; const r=sim(S,A,H,mul,NS), sc=score(r,w); A[a]+=m; A[b]-=m; if(sc>bs+1e-9){ bs=sc; bi=a; bj=b; bR=r; } } }
+      if(bi<0) break; const m=Math.min(stp,A[bi]); A[bi]-=m; A[bj]+=m; best=bs; R=bR; moves++; } }
+    R=sim(S,A,H,mul); best=score(R,w); const base=sim(S,cur,H,mul); if(btn){ delete btn.dataset.busy; btn.disabled=false; }
     const f=x=>fmtBig(x), pc=(a,b)=>a>0?((b/a-1)*100).toFixed(1)+'%':'—';
     const baseU=score(base,w); let h='<div style="font-size:13px">Score (weighted sum of ln(1+bonus)): <b>'+baseU.toFixed(2)+'</b> now &rarr; <b>'+best.toFixed(2)+'</b> after '+H+'h with the plan ('+moves+' moves, '+pool+' Baby Demons).</div>';
     const PG=['Sin Energy','Cos Energy','Tan Energy'], PGK=['sinEnergyCurrent','cosEnergyCurrent','tanEnergyCurrent'], dd=window.__advD||{};
